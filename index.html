@@ -272,11 +272,21 @@
   .closing-card { background: linear-gradient(135deg, rgba(79,110,247,0.1), rgba(124,58,237,0.1)); border: 1px solid rgba(79,110,247,0.3); border-radius: var(--radius-lg); padding: 20px; }
 
   @media (max-width: 900px) {
-    .sidebar { width: 56px; }
-    .sidebar .brand-name, .sidebar .brand-ver, .nav-item span, .nav-label, .user-info, .nav-badge { display: none; }
-    .nav-item { justify-content: center; }
+    .sidebar { width: 60px; }
+    .sidebar .brand-name, .sidebar .brand-ver, .nav-label, .user-info { display: none; }
+    .nav-badge { display: none; }
+    .nav-item span:last-child:not(.icon) { display: none; }
+    .nav-item { justify-content: center; padding: 10px 0; }
+    .nav-item .icon { font-size: 20px; width: 28px; text-align: center; opacity: 1 !important; color: rgba(255,255,255,0.9) !important; }
+    .nav-item.active .icon { color: #ffffff !important; }
+    .brand-logo img { width: 32px; height: 32px; }
+    .brand { padding: 12px 8px; }
+    .sidebar-footer { padding: 8px 4px; }
+    .user-chip { justify-content: center; padding: 8px 0; }
+    .avatar { width: 34px; height: 34px; font-size: 13px; }
     .grid-4 { grid-template-columns: 1fr 1fr; }
     .grid-3 { grid-template-columns: 1fr 1fr; }
+    .content { padding: 12px; }
   }
 </style>
 </head>
