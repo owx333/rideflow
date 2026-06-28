@@ -379,6 +379,7 @@
     <div class="topbar-title" id="topbar-title">Dashboard</div>
     <div class="topbar-date" id="topbar-date"></div>
     <div id="topbar-actions"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-left:8px;"><span id="user-email-display" style="font-size:11px;color:var(--text2);"></span><button class="btn btn-ghost btn-sm" onclick="doLogout()">Logout</button></div>
   </div>
 
   <div class="content" id="content">
@@ -1038,12 +1039,62 @@
   </div>
 </div>
 
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay" style="display:flex;position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#1e2560 0%,#0d1240 100%);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:20px;padding:40px;width:380px;max-width:95vw;box-shadow:0 24px 60px rgba(0,0,0,0.4);">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:48px;margin-bottom:8px;">🚗</div>
+      <div style="font-size:22px;font-weight:800;color:#1e2560;letter-spacing:-0.5px;">AppleRider</div>
+      <div style="font-size:13px;color:#8b90b8;margin-top:4px;">Transport Management System</div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:12px;font-weight:600;color:#4b5280;margin-bottom:6px;">Email</label>
+      <input id="login-email" type="email" placeholder="admin@applerider.com"
+        style="width:100%;padding:10px 14px;border:1.5px solid #d4d9f0;border-radius:9px;font-size:14px;outline:none;font-family:inherit;"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="display:block;font-size:12px;font-weight:600;color:#4b5280;margin-bottom:6px;">Password</label>
+      <input id="login-pass" type="password" placeholder="••••••••"
+        style="width:100%;padding:10px 14px;border:1.5px solid #d4d9f0;border-radius:9px;font-size:14px;outline:none;font-family:inherit;"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-error" style="color:#dc2626;font-size:12px;margin-bottom:12px;min-height:16px;"></div>
+    <button id="login-btn" onclick="doLogin()"
+      style="width:100%;padding:11px;background:linear-gradient(135deg,#4361ee,#7c3aed);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.2px;">
+      Login
+    </button>
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:#8b90b8;">Powered by AppleRider V1.0</div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast"></div>
 
-<script>
+<script type="module">
 // ============================================================
-// DATA STORE
+// FIREBASE SETUP
+// ============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, doc, getDocs, addDoc, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBvMVKEJxi_Snw9APLhejVAtG4Zdpe1Vqc",
+  authDomain: "applerider.firebaseapp.com",
+  projectId: "applerider",
+  storageBucket: "applerider.firebasestorage.app",
+  messagingSenderId: "997537917517",
+  appId: "1:997537917517:web:832adbf81db415be058a04"
+};
+
+const app = initializeApp(firebaseConfig);
+const db_fs = getFirestore(app);
+const auth = getAuth(app);
+
+// ============================================================
+// DATA STORE (local cache — synced from Firestore)
 // ============================================================
 let db = {
   bookings: [],
@@ -1058,81 +1109,134 @@ let db = {
 
 let bookingCounter = 1000;
 let calYear, calMonth;
+let currentUser = null;
+let unsubscribers = [];
+
+// ============================================================
+// LOGIN SCREEN
+// ============================================================
+function showLogin() {
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.querySelector('.app').style.display = 'none';
+}
+
+function hideLogin() {
+  document.getElementById('login-overlay').style.display = 'none';
+  document.querySelector('.app').style.display = 'flex';
+}
+
+window.doLogin = async function() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+  const btn = document.getElementById('login-btn');
+  btn.textContent = 'Logging in...'; btn.disabled = true;
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    errEl.textContent = 'Login failed: ' + (e.code === 'auth/invalid-credential' ? 'Wrong email or password' : e.message);
+    btn.textContent = 'Login'; btn.disabled = false;
+  }
+};
+
+window.doLogout = async function() {
+  if (!confirm('Logout?')) return;
+  unsubscribers.forEach(u => u());
+  unsubscribers = [];
+  await signOut(auth);
+  db = { bookings:[], customers:[], drivers:[], vehicles:[], income:[], expenses:[], closings:[], notifications:[] };
+  showLogin();
+};
+
+// ============================================================
+// FIRESTORE HELPERS
+// ============================================================
+async function fsSet(col, id, data) {
+  await setDoc(doc(db_fs, col, id), data);
+}
+
+async function fsDel(col, id) {
+  await deleteDoc(doc(db_fs, col, id));
+}
+
+// Subscribe to a collection, update local db array, re-render
+function subscribeCol(colName, renderFn) {
+  const q = collection(db_fs, colName);
+  const unsub = onSnapshot(q, (snap) => {
+    db[colName] = snap.docs.map(d => ({ ...d.data(), _fsId: d.id }));
+    // Update booking counter
+    if (colName === 'bookings' && db.bookings.length) {
+      const ids = db.bookings.map(b => parseInt((b.id||'').replace('RF','')) || 1000);
+      bookingCounter = Math.max(...ids, 1000);
+    }
+    updateBadges();
+    if (renderFn) renderFn();
+  }, (err) => console.error(colName, err));
+  unsubscribers.push(unsub);
+}
+
+// ============================================================
+// SAVE — write to Firestore
+// ============================================================
+async function save() {
+  updateBadges();
+}
+
+// Save a single record to Firestore
+async function saveRecord(colName, record) {
+  try {
+    await fsSet(colName, record.id, record);
+  } catch(e) {
+    toast('Save failed: ' + e.message, 'error');
+    console.error(e);
+  }
+}
 
 // ============================================================
 // INIT
 // ============================================================
 function init() {
-  const saved = localStorage.getItem('rideflow_db');
-  if (saved) {
-    db = JSON.parse(saved);
-    // get counter from existing bookings
-    if (db.bookings.length) {
-      const ids = db.bookings.map(b => parseInt(b.id.replace('RF','')) || 1000);
-      bookingCounter = Math.max(...ids);
-    }
-  } else {
-    seedData();
-  }
-
   const now = new Date();
   calYear = now.getFullYear();
   calMonth = now.getMonth();
-
   document.getElementById('topbar-date').textContent = now.toLocaleDateString('en-MY', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
-  updateBadges();
-  renderDashboard();
-  renderCalendar();
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('user-email-display').textContent = user.email;
+      hideLogin();
+      startListeners();
+    } else {
+      currentUser = null;
+      showLogin();
+    }
+  });
 }
 
-function save() {
-  localStorage.setItem('rideflow_db', JSON.stringify(db));
-  updateBadges();
+function startListeners() {
+  // Subscribe to all collections
+  subscribeCol('customers',  () => { if(isPageActive('customers')) renderCustomers(); });
+  subscribeCol('drivers',    () => { if(isPageActive('drivers')) renderDrivers(); renderDashboard(); });
+  subscribeCol('vehicles',   () => { if(isPageActive('vehicles')) renderVehicles(); });
+  subscribeCol('bookings',   () => { renderDashboard(); renderCalendar(); if(isPageActive('bookings')) renderBookings(); if(isPageActive('closing')) renderClosing(); });
+  subscribeCol('income',     () => { if(isPageActive('income')) renderIncome(); renderDashboard(); });
+  subscribeCol('expenses',   () => { if(isPageActive('expenses')) renderExpenses(); renderDashboard(); });
+  subscribeCol('closings',   () => {});
+  subscribeCol('notifications', () => { if(isPageActive('notifications')) renderNotifications(); updateBadges(); });
+
+  // Initial render after short delay to let snapshots arrive
+  setTimeout(() => {
+    updateBadges();
+    renderDashboard();
+    renderCalendar();
+  }, 800);
 }
 
-// ============================================================
-// SEED DATA
-// ============================================================
-function seedData() {
-  db.customers = [
-    { id:'C1', name:'Lim Wei Kiat', phone:'+60 12-345 6789', email:'lim@email.com', notes:'Prefers Toyota Vios', createdAt: today() },
-    { id:'C2', name:'Siti Rahayu', phone:'+60 11-222 3333', email:'siti@email.com', notes:'VIP Customer', createdAt: today() },
-    { id:'C3', name:'Kumar Raj', phone:'+60 16-777 8888', email:'kumar@email.com', notes:'Airport pickup regulars', createdAt: today() },
-  ];
-  db.drivers = [
-    { id:'D1', name:'Ahmad Faiz', phone:'+60 12-111 2222', license:'D1234567', status:'Available', notes:'' },
-    { id:'D2', name:'Mohd Zaki', phone:'+60 11-333 4444', license:'D2345678', status:'Driving', notes:'' },
-    { id:'D3', name:'David Tan', phone:'+60 16-555 6666', license:'D3456789', status:'Off Duty', notes:'' },
-  ];
-  db.vehicles = [
-    { id:'V1', plate:'WXY 1234', model:'Toyota Vios', year:'2022', color:'Silver', status:'On Trip', roadtax:'2025-12-31', insurance:'2025-06-30' },
-    { id:'V2', plate:'VJY 5678', model:'Honda City', year:'2021', color:'White', status:'Available', roadtax:'2025-08-31', insurance:'2025-09-30' },
-    { id:'V3', plate:'BNX 9012', model:'Toyota Alphard', year:'2023', color:'Black', status:'Available', roadtax:'2026-03-31', insurance:'2026-01-31' },
-  ];
-
-  const todayStr = today();
-  db.bookings = [
-    { id:'RF1001', customerId:'C1', type:'Airport Drop-off', date: todayStr, time:'08:00', pickup:'Petaling Jaya', dropoff:'KLIA Terminal 1', amount:180, deposit:50, balance:130, paymentMethod:'Bank Transfer', paymentStatus:'Deposit Paid', driverId:'D2', vehicleId:'V1', status:'Driver On The Way', notes:'Flight MH370 at 11:00' },
-    { id:'RF1002', customerId:'C2', type:'VIP Booking', date: todayStr, time:'14:00', pickup:'Four Seasons KL', dropoff:'Mandarin Oriental', amount:350, deposit:350, balance:0, paymentMethod:'Credit Card', paymentStatus:'Fully Paid', driverId:'D1', vehicleId:'V3', status:'Confirmed', notes:'VIP guest, be punctual' },
-    { id:'RF1003', customerId:'C3', type:'Airport Pickup', date: todayStr, time:'18:30', pickup:'KLIA Terminal 2', dropoff:'Ara Damansara', amount:140, deposit:0, balance:140, paymentMethod:'Cash', paymentStatus:'Pending', driverId:'', vehicleId:'', status:'New', notes:'Air Asia flight QZ8501' },
-  ];
-  bookingCounter = 1003;
-
-  db.income = [
-    { id:'I1', date: todayStr, type:'Private Booking', desc:'KLIA to PJ', driverId:'D2', payment:'Bank Transfer', amount:180 },
-    { id:'I2', date: todayStr, type:'Grab', desc:'Morning trips x3', driverId:'D1', payment:'Online Payment', amount:95 },
-  ];
-  db.expenses = [
-    { id:'EX1', date: todayStr, type:'Fuel', desc:'Petrol refill Toyota Vios', vehicleId:'V1', amount:120 },
-    { id:'EX2', date: todayStr, type:'Toll', desc:'PLUS Highway', vehicleId:'V1', amount:14.50 },
-  ];
-  db.notifications = [
-    { id:'N1', type:'warning', title:'Road Tax Expiring', msg:'VJY 5678 road tax expires 31 Aug 2025', read:false, time: todayStr },
-    { id:'N2', type:'info', title:'Outstanding Payment', msg:'RF1003 - Kumar Raj owes RM 140', read:false, time: todayStr },
-    { id:'N3', type:'alert', title:'Driver Unassigned', msg:'Booking RF1003 has no driver assigned', read:false, time: todayStr },
-  ];
-  save();
+function isPageActive(page) {
+  const el = document.getElementById('page-' + page);
+  return el && el.classList.contains('active');
 }
 
 function today() {
@@ -1153,11 +1257,8 @@ function nav(page) {
     closing:'Daily Closing', reports:'Reports', notifications:'Notifications', settings:'Settings'
   };
   document.getElementById('topbar-title').textContent = titles[page] || page;
+  document.getElementById('topbar-actions').innerHTML = '';
 
-  const actions = document.getElementById('topbar-actions');
-  actions.innerHTML = '';
-
-  // Render page
   if (page === 'dashboard') renderDashboard();
   else if (page === 'calendar') renderCalendar();
   else if (page === 'bookings') renderBookings();
@@ -1170,6 +1271,7 @@ function nav(page) {
   else if (page === 'reports') renderReports('summary');
   else if (page === 'notifications') renderNotifications();
 }
+window.nav = nav;
 
 // ============================================================
 // DASHBOARD
@@ -1186,15 +1288,14 @@ function renderDashboard() {
   document.getElementById('stat-today-expenses').textContent = 'RM ' + todayExpenses.toFixed(2);
   document.getElementById('stat-today-profit').textContent = 'RM ' + todayProfit.toFixed(2);
 
-  // Recent bookings
   const recentEl = document.getElementById('dash-recent-bookings');
   if (!db.bookings.length) { recentEl.innerHTML = '<div class="empty-state"><p>No bookings yet</p></div>'; }
   else {
-    const recent = [...db.bookings].sort((a,b) => b.id.localeCompare(a.id)).slice(0,5);
+    const recent = [...db.bookings].sort((a,b) => (b.id||'').localeCompare(a.id||'')).slice(0,5);
     recentEl.innerHTML = recent.map(b => {
       const cust = db.customers.find(c => c.id === b.customerId);
       return `<div class="detail-row">
-        <div class="detail-label"><span class="td-mono">${b.id}</span></div>
+        <div class="detail-label"><span class="td-mono">${b.id||'—'}</span></div>
         <div class="detail-value flex-center gap-8" style="flex:1;justify-content:space-between">
           <span>${cust?.name || '—'}</span>
           ${bookingStatusBadge(b.status)}
@@ -1203,7 +1304,6 @@ function renderDashboard() {
     }).join('');
   }
 
-  // Driver status
   const driversEl = document.getElementById('dash-drivers');
   driversEl.innerHTML = db.drivers.map(d => `
     <div class="flex-center gap-8" style="padding:8px 0;border-bottom:1px solid var(--border)">
@@ -1213,7 +1313,6 @@ function renderDashboard() {
     </div>
   `).join('') || '<div class="text-dim text-sm">No drivers</div>';
 
-  // Monthly chart
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const now = new Date();
   const monthData = [];
@@ -1231,7 +1330,6 @@ function renderDashboard() {
   `).join('');
   document.getElementById('monthly-labels').innerHTML = monthData.map(m => `<span class="text-xs text-dim">${m.label}</span>`).join('');
 
-  // Outstanding
   const outstanding = db.bookings.filter(b => b.paymentStatus !== 'Fully Paid' && b.paymentStatus !== 'Cancelled' && b.paymentStatus !== 'Refunded' && parseFloat(b.balance) > 0);
   const outEl = document.getElementById('dash-outstanding');
   if (!outstanding.length) outEl.innerHTML = '<div class="empty-state"><p>No outstanding payments 🎉</p></div>';
@@ -1243,6 +1341,7 @@ function renderDashboard() {
     </div>`;
   }).join('');
 }
+window.renderDashboard = renderDashboard;
 
 // ============================================================
 // CALENDAR
@@ -1250,16 +1349,13 @@ function renderDashboard() {
 function renderCalendar() {
   const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   document.getElementById('cal-headers').innerHTML = days.map(d => `<div class="cal-day-header">${d}</div>`).join('');
-
   const now = new Date();
   const firstDay = new Date(calYear, calMonth, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
-
   let html = '';
   for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
-
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday = dateStr === today();
@@ -1270,57 +1366,52 @@ function renderCalendar() {
       return `<div class="cal-event ${cls}">${b.time} ${c?.name?.split(' ')[0] || b.type}</div>`;
     }).join('');
     html += `<div class="cal-day ${isToday ? 'today' : ''}" onclick="calDayClick('${dateStr}')">
-      <div class="cal-day-num">${d}</div>
-      ${eventsHtml}
+      <div class="cal-day-num">${d}</div>${eventsHtml}
       ${dayBookings.length > 3 ? `<div class="text-xs text-dim">+${dayBookings.length-3} more</div>` : ''}
     </div>`;
   }
   document.getElementById('cal-grid').innerHTML = html;
 }
-
-function calPrev() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
-function calNext() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar(); }
-function calDayClick(date) { document.getElementById('b-date').value = date; openBookingModal(); }
+window.renderCalendar = renderCalendar;
+window.calPrev = function() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); };
+window.calNext = function() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar(); };
+window.calDayClick = function(date) { document.getElementById('b-date').value = date; openBookingModal(); };
 
 // ============================================================
 // BOOKINGS
 // ============================================================
-function renderBookings(filter) {
-  let list = [...db.bookings].sort((a,b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
+function renderBookings() {
+  let list = [...db.bookings].sort((a,b) => (b.date||'').localeCompare(a.date||'') || (b.time||'').localeCompare(a.time||''));
   const search = document.getElementById('booking-search')?.value.toLowerCase() || '';
   const statusF = document.getElementById('booking-status-filter')?.value || '';
   if (search) list = list.filter(b => {
     const c = db.customers.find(x => x.id === b.customerId);
-    return b.id.toLowerCase().includes(search) || c?.name?.toLowerCase().includes(search) || b.type.toLowerCase().includes(search) || b.pickup.toLowerCase().includes(search);
+    return (b.id||'').toLowerCase().includes(search) || (c?.name||'').toLowerCase().includes(search) || (b.type||'').toLowerCase().includes(search) || (b.pickup||'').toLowerCase().includes(search);
   });
   if (statusF) list = list.filter(b => b.status === statusF);
-
   document.getElementById('bookings-tbody').innerHTML = list.map(b => {
     const cust = db.customers.find(c => c.id === b.customerId);
-    const driver = db.drivers.find(d => d.id === b.driverId);
     return `<tr>
-      <td class="td-mono">${b.id}</td>
+      <td class="td-mono">${b.id||'—'}</td>
       <td><div class="font-bold" style="font-size:13px">${cust?.name || '—'}</div><div class="text-xs text-dim">${cust?.phone || ''}</div></td>
-      <td class="text-sm">${b.type}</td>
-      <td><div>${b.date}</div><div class="text-xs text-dim">${b.time}</div></td>
-      <td class="text-sm" style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.pickup}</td>
-      <td class="text-sm" style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.dropoff}</td>
-      <td><div class="font-bold">RM ${parseFloat(b.amount).toFixed(2)}</div><div class="text-xs ${parseFloat(b.balance)>0?'red':'green'}">Bal: RM ${parseFloat(b.balance).toFixed(2)}</div></td>
+      <td class="text-sm">${b.type||''}</td>
+      <td><div>${b.date||''}</div><div class="text-xs text-dim">${b.time||''}</div></td>
+      <td class="text-sm" style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.pickup||''}</td>
+      <td class="text-sm" style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.dropoff||''}</td>
+      <td><div class="font-bold">RM ${parseFloat(b.amount||0).toFixed(2)}</div><div class="text-xs ${parseFloat(b.balance||0)>0?'red':'green'}">Bal: RM ${parseFloat(b.balance||0).toFixed(2)}</div></td>
       <td>${paymentStatusBadge(b.paymentStatus)}</td>
       <td>${bookingStatusBadge(b.status)}</td>
-      <td>
-        <div class="flex gap-8">
-          <button class="btn btn-ghost btn-sm" onclick="viewBooking('${b.id}')">View</button>
-          <button class="btn btn-ghost btn-sm" onclick="editBooking('${b.id}')">Edit</button>
-        </div>
-      </td>
+      <td><div class="flex gap-8">
+        <button class="btn btn-ghost btn-sm" onclick="viewBooking('${b.id}')">View</button>
+        <button class="btn btn-ghost btn-sm" onclick="editBooking('${b.id}')">Edit</button>
+      </div></td>
     </tr>`;
   }).join('') || `<tr><td colspan="10"><div class="empty-state"><div class="icon">📋</div><p>No bookings found</p></div></td></tr>`;
 }
+window.renderBookings = renderBookings;
+window.filterBookings = renderBookings;
 
-function filterBookings() { renderBookings(); }
-
-function openBookingModal(bookingId) {
+window.openBookingModal = function(bookingId) {
   document.getElementById('booking-modal-title').textContent = 'New Booking';
   document.getElementById('edit-booking-id').value = '';
   ['b-customer','b-type','b-date','b-time','b-pickup','b-dropoff','b-amount','b-deposit','b-balance','b-payment-method','b-payment-status','b-driver','b-vehicle','b-status','b-notes'].forEach(id => {
@@ -1328,21 +1419,17 @@ function openBookingModal(bookingId) {
     if (el) el.value = el.tagName === 'SELECT' ? el.options[0]?.value : '';
   });
   document.getElementById('b-date').value = today();
-
-  // Populate dropdowns
   const custSel = document.getElementById('b-customer');
   custSel.innerHTML = '<option value="">Select Customer</option>' + db.customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   const driverSel = document.getElementById('b-driver');
   driverSel.innerHTML = '<option value="">— Not Assigned —</option>' + db.drivers.map(d => `<option value="${d.id}">${d.name} (${d.status})</option>`).join('');
   const vehicleSel = document.getElementById('b-vehicle');
   vehicleSel.innerHTML = '<option value="">— Select Vehicle —</option>' + db.vehicles.map(v => `<option value="${v.id}">${v.plate} — ${v.model}</option>`).join('');
-
   openModal('modal-booking');
-}
+};
 
-function editBooking(id) {
-  const b = db.bookings.find(x => x.id === id);
-  if (!b) return;
+window.editBooking = function(id) {
+  const b = db.bookings.find(x => x.id === id); if (!b) return;
   openBookingModal();
   document.getElementById('booking-modal-title').textContent = 'Edit Booking';
   document.getElementById('edit-booking-id').value = id;
@@ -1357,26 +1444,24 @@ function editBooking(id) {
   document.getElementById('b-balance').value = b.balance;
   document.getElementById('b-payment-method').value = b.paymentMethod;
   document.getElementById('b-payment-status').value = b.paymentStatus;
-  document.getElementById('b-driver').value = b.driverId;
-  document.getElementById('b-vehicle').value = b.vehicleId;
+  document.getElementById('b-driver').value = b.driverId||'';
+  document.getElementById('b-vehicle').value = b.vehicleId||'';
   document.getElementById('b-status').value = b.status;
-  document.getElementById('b-notes').value = b.notes;
-}
+  document.getElementById('b-notes').value = b.notes||'';
+};
 
-function saveBooking() {
+window.saveBooking = async function() {
   const custId = document.getElementById('b-customer').value;
-  const date = document.getElementById('b-date').value;
-  const time = document.getElementById('b-time').value;
+  const date   = document.getElementById('b-date').value;
+  const time   = document.getElementById('b-time').value;
   const pickup = document.getElementById('b-pickup').value;
-  const dropoff = document.getElementById('b-dropoff').value;
+  const dropoff= document.getElementById('b-dropoff').value;
   if (!custId || !date || !time || !pickup || !dropoff) { toast('Please fill all required fields', 'error'); return; }
-
   const editId = document.getElementById('edit-booking-id').value;
   const booking = {
     id: editId || `RF${++bookingCounter}`,
     customerId: custId,
-    type: document.getElementById('b-type').value,
-    date, time, pickup, dropoff,
+    type: document.getElementById('b-type').value, date, time, pickup, dropoff,
     amount: parseFloat(document.getElementById('b-amount').value) || 0,
     deposit: parseFloat(document.getElementById('b-deposit').value) || 0,
     balance: parseFloat(document.getElementById('b-balance').value) || 0,
@@ -1385,44 +1470,31 @@ function saveBooking() {
     driverId: document.getElementById('b-driver').value,
     vehicleId: document.getElementById('b-vehicle').value,
     status: document.getElementById('b-status').value,
-    notes: document.getElementById('b-notes').value
+    notes: document.getElementById('b-notes').value,
+    updatedAt: new Date().toISOString()
   };
-
-  if (editId) {
-    const idx = db.bookings.findIndex(b => b.id === editId);
-    db.bookings[idx] = booking;
-    toast('Booking updated ✓', 'success');
-  } else {
-    db.bookings.push(booking);
-    toast('Booking created: ' + booking.id, 'success');
-  }
-  save();
+  await saveRecord('bookings', booking);
+  toast(editId ? 'Booking updated ✓' : 'Booking created: ' + booking.id, 'success');
   closeModal('modal-booking');
-  if (document.getElementById('page-bookings').classList.contains('active')) renderBookings();
-  if (document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
-  renderCalendar();
-}
+};
 
-function viewBooking(id) {
-  const b = db.bookings.find(x => x.id === id);
-  if (!b) return;
+window.viewBooking = function(id) {
+  const b = db.bookings.find(x => x.id === id); if (!b) return;
   const cust = db.customers.find(c => c.id === b.customerId);
   const driver = db.drivers.find(d => d.id === b.driverId);
   const vehicle = db.vehicles.find(v => v.id === b.vehicleId);
-
   document.getElementById('booking-detail-content').innerHTML = `
     <div class="flex-center gap-8 mb-16">
       <span class="td-mono" style="font-size:18px;font-weight:800">${b.id}</span>
-      ${bookingStatusBadge(b.status)}
-      ${paymentStatusBadge(b.paymentStatus)}
+      ${bookingStatusBadge(b.status)} ${paymentStatusBadge(b.paymentStatus)}
     </div>
     <div class="detail-row"><div class="detail-label">Customer</div><div class="detail-value font-bold">${cust?.name || '—'} · ${cust?.phone || ''}</div></div>
-    <div class="detail-row"><div class="detail-label">Booking Type</div><div class="detail-value">${b.type}</div></div>
+    <div class="detail-row"><div class="detail-label">Type</div><div class="detail-value">${b.type}</div></div>
     <div class="detail-row"><div class="detail-label">Date & Time</div><div class="detail-value">${b.date} at ${b.time}</div></div>
     <div class="detail-row"><div class="detail-label">Pickup</div><div class="detail-value">${b.pickup}</div></div>
     <div class="detail-row"><div class="detail-label">Dropoff</div><div class="detail-value">${b.dropoff}</div></div>
     <hr class="divider">
-    <div class="detail-row"><div class="detail-label">Total Amount</div><div class="detail-value font-bold" style="font-size:16px">RM ${parseFloat(b.amount).toFixed(2)}</div></div>
+    <div class="detail-row"><div class="detail-label">Total</div><div class="detail-value font-bold" style="font-size:16px">RM ${parseFloat(b.amount).toFixed(2)}</div></div>
     <div class="detail-row"><div class="detail-label">Deposit</div><div class="detail-value green">RM ${parseFloat(b.deposit).toFixed(2)}</div></div>
     <div class="detail-row"><div class="detail-label">Balance Due</div><div class="detail-value ${parseFloat(b.balance)>0?'red font-bold':'green'}">RM ${parseFloat(b.balance).toFixed(2)}</div></div>
     <div class="detail-row"><div class="detail-label">Payment</div><div class="detail-value">${b.paymentMethod}</div></div>
@@ -1431,50 +1503,42 @@ function viewBooking(id) {
     <div class="detail-row"><div class="detail-label">Vehicle</div><div class="detail-value">${vehicle ? vehicle.plate + ' — ' + vehicle.model : '— Not Assigned'}</div></div>
     ${b.notes ? `<hr class="divider"><div class="detail-row"><div class="detail-label">Notes</div><div class="detail-value">${b.notes}</div></div>` : ''}
   `;
-
-  // Quick status update
   const statuses = ['New','Confirmed','Assigned','Driver On The Way','Passenger Picked Up','Completed','Cancelled','No Show'];
   document.getElementById('booking-detail-footer').innerHTML = `
-    <div style="flex:1">
-      <select class="form-control" id="quick-status" style="width:200px">
-        ${statuses.map(s => `<option ${s===b.status?'selected':''}>${s}</option>`).join('')}
-      </select>
-    </div>
+    <div style="flex:1"><select class="form-control" id="quick-status" style="width:200px">
+      ${statuses.map(s => `<option ${s===b.status?'selected':''}>${s}</option>`).join('')}
+    </select></div>
     <button class="btn btn-ghost" onclick="closeModal('modal-booking-detail')">Close</button>
     <button class="btn btn-primary" onclick="quickUpdateStatus('${b.id}')">Update Status</button>
     <button class="btn btn-ghost" onclick="closeModal('modal-booking-detail');editBooking('${b.id}')">Edit</button>
   `;
   openModal('modal-booking-detail');
-}
+};
 
-function quickUpdateStatus(id) {
-  const b = db.bookings.find(x => x.id === id);
-  if (!b) return;
+window.quickUpdateStatus = async function(id) {
+  const b = db.bookings.find(x => x.id === id); if (!b) return;
   b.status = document.getElementById('quick-status').value;
-  save();
+  await saveRecord('bookings', b);
   closeModal('modal-booking-detail');
   toast('Status updated to: ' + b.status, 'success');
-  if (document.getElementById('page-bookings').classList.contains('active')) renderBookings();
-  renderDashboard();
-}
+};
 
-function calcBalance() {
+window.calcBalance = function() {
   const amt = parseFloat(document.getElementById('b-amount').value) || 0;
   const dep = parseFloat(document.getElementById('b-deposit').value) || 0;
   document.getElementById('b-balance').value = Math.max(0, amt - dep).toFixed(2);
-}
+};
 
 // ============================================================
 // CUSTOMERS
 // ============================================================
 function renderCustomers() {
   const search = document.getElementById('customer-search')?.value.toLowerCase() || '';
-  let list = db.customers.filter(c => !search || c.name.toLowerCase().includes(search) || c.phone.includes(search));
-
+  let list = db.customers.filter(c => !search || (c.name||'').toLowerCase().includes(search) || (c.phone||'').includes(search));
   document.getElementById('customers-tbody').innerHTML = list.map(c => {
     const bookings = db.bookings.filter(b => b.customerId === c.id);
     const spent = bookings.reduce((s,b) => s + (parseFloat(b.amount)||0), 0);
-    const lastB = bookings.sort((a,b) => b.date.localeCompare(a.date))[0];
+    const lastB = bookings.sort((a,b2) => (b2.date||'').localeCompare(a.date||''))[0];
     return `<tr>
       <td><div class="font-bold">${c.name}</div></td>
       <td class="text-sm">${c.phone}</td>
@@ -1482,55 +1546,50 @@ function renderCustomers() {
       <td class="text-center">${bookings.length}</td>
       <td class="font-bold green">RM ${spent.toFixed(2)}</td>
       <td class="text-sm text-muted">${lastB?.date || '—'}</td>
-      <td>
-        <div class="flex gap-8">
-          <button class="btn btn-ghost btn-sm" onclick="editCustomer('${c.id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">Del</button>
-        </div>
-      </td>
+      <td><div class="flex gap-8">
+        <button class="btn btn-ghost btn-sm" onclick="editCustomer('${c.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">Del</button>
+      </div></td>
     </tr>`;
   }).join('') || '<tr><td colspan="7"><div class="empty-state"><div class="icon">👥</div><p>No customers yet</p></div></td></tr>';
 }
+window.renderCustomers = renderCustomers;
+window.filterCustomers = renderCustomers;
 
-function filterCustomers() { renderCustomers(); }
-
-function openCustomerModal() {
+window.openCustomerModal = function() {
   document.getElementById('customer-modal-title').textContent = 'New Customer';
   document.getElementById('edit-customer-id').value = '';
   ['c-name','c-phone','c-email','c-notes'].forEach(id => document.getElementById(id).value = '');
   openModal('modal-customer');
-}
+};
 
-function editCustomer(id) {
-  const c = db.customers.find(x => x.id === id);
-  if (!c) return;
+window.editCustomer = function(id) {
+  const c = db.customers.find(x => x.id === id); if (!c) return;
   document.getElementById('customer-modal-title').textContent = 'Edit Customer';
   document.getElementById('edit-customer-id').value = id;
   document.getElementById('c-name').value = c.name;
   document.getElementById('c-phone').value = c.phone;
-  document.getElementById('c-email').value = c.email;
-  document.getElementById('c-notes').value = c.notes;
+  document.getElementById('c-email').value = c.email||'';
+  document.getElementById('c-notes').value = c.notes||'';
   openModal('modal-customer');
-}
+};
 
-function saveCustomer() {
+window.saveCustomer = async function() {
   const name = document.getElementById('c-name').value.trim();
   const phone = document.getElementById('c-phone').value.trim();
   if (!name || !phone) { toast('Name and phone are required', 'error'); return; }
   const editId = document.getElementById('edit-customer-id').value;
-  const customer = { id: editId || 'C'+(Date.now()), name, phone, email: document.getElementById('c-email').value, notes: document.getElementById('c-notes').value, createdAt: today() };
-  if (editId) { const idx = db.customers.findIndex(c => c.id === editId); db.customers[idx] = customer; toast('Customer updated ✓', 'success'); }
-  else { db.customers.push(customer); toast('Customer added ✓', 'success'); }
-  save();
+  const customer = { id: editId || 'C'+Date.now(), name, phone, email: document.getElementById('c-email').value, notes: document.getElementById('c-notes').value, createdAt: today() };
+  await saveRecord('customers', customer);
+  toast(editId ? 'Customer updated ✓' : 'Customer added ✓', 'success');
   closeModal('modal-customer');
-  renderCustomers();
-}
+};
 
-function deleteCustomer(id) {
+window.deleteCustomer = async function(id) {
   if (!confirm('Delete this customer?')) return;
-  db.customers = db.customers.filter(c => c.id !== id);
-  save(); renderCustomers(); toast('Customer deleted', 'success');
-}
+  await fsDel('customers', id);
+  toast('Customer deleted', 'success');
+};
 
 // ============================================================
 // DRIVERS
@@ -1542,10 +1601,7 @@ function renderDrivers() {
     return `<div class="driver-card">
       <div class="driver-head">
         <div class="driver-avatar">${initials}</div>
-        <div style="flex:1">
-          <div class="driver-name">${d.name}</div>
-          <div class="driver-phone">${d.phone}</div>
-        </div>
+        <div style="flex:1"><div class="driver-name">${d.name}</div><div class="driver-phone">${d.phone}</div></div>
         ${driverStatusBadge(d.status)}
       </div>
       <div class="detail-row"><div class="detail-label">License</div><div class="td-mono">${d.license || '—'}</div></div>
@@ -1560,41 +1616,43 @@ function renderDrivers() {
     </div>`;
   }).join('') || '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🧑‍✈️</div><p>No drivers added yet</p></div>';
 }
+window.renderDrivers = renderDrivers;
 
-function updateDriverStatus(id) {
-  const d = db.drivers.find(x => x.id === id);
-  if (d) { d.status = document.getElementById(`dstatus-${id}`).value; save(); toast(`${d.name} status updated`, 'success'); }
-}
+window.updateDriverStatus = async function(id) {
+  const d = db.drivers.find(x => x.id === id); if (!d) return;
+  d.status = document.getElementById(`dstatus-${id}`).value;
+  await saveRecord('drivers', d);
+  toast(`${d.name} status updated`, 'success');
+};
 
-function openDriverModal() {
+window.openDriverModal = function() {
   document.getElementById('edit-driver-id').value = '';
   ['d-name','d-phone','d-license','d-notes'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('d-status').value = 'Available';
   openModal('modal-driver');
-}
+};
 
-function editDriver(id) {
-  const d = db.drivers.find(x => x.id === id);
-  if (!d) return;
+window.editDriver = function(id) {
+  const d = db.drivers.find(x => x.id === id); if (!d) return;
   document.getElementById('edit-driver-id').value = id;
   document.getElementById('d-name').value = d.name;
   document.getElementById('d-phone').value = d.phone;
-  document.getElementById('d-license').value = d.license;
+  document.getElementById('d-license').value = d.license||'';
   document.getElementById('d-status').value = d.status;
-  document.getElementById('d-notes').value = d.notes;
+  document.getElementById('d-notes').value = d.notes||'';
   openModal('modal-driver');
-}
+};
 
-function saveDriver() {
+window.saveDriver = async function() {
   const name = document.getElementById('d-name').value.trim();
   const phone = document.getElementById('d-phone').value.trim();
   if (!name || !phone) { toast('Name and phone required', 'error'); return; }
   const editId = document.getElementById('edit-driver-id').value;
   const driver = { id: editId || 'D'+Date.now(), name, phone, license: document.getElementById('d-license').value, status: document.getElementById('d-status').value, notes: document.getElementById('d-notes').value };
-  if (editId) { const idx = db.drivers.findIndex(d => d.id === editId); db.drivers[idx] = driver; toast('Driver updated ✓', 'success'); }
-  else { db.drivers.push(driver); toast('Driver added ✓', 'success'); }
-  save(); closeModal('modal-driver'); renderDrivers();
-}
+  await saveRecord('drivers', driver);
+  toast(editId ? 'Driver updated ✓' : 'Driver added ✓', 'success');
+  closeModal('modal-driver');
+};
 
 // ============================================================
 // VEHICLES
@@ -1613,14 +1671,8 @@ function renderVehicles() {
       </div>
       <div class="font-bold mb-4">${v.model}</div>
       <div class="text-sm text-muted mb-16">${v.year} · ${v.color}</div>
-      ${rtDays !== null ? `<div class="flex-center gap-8 mb-4">
-        <span class="text-xs text-dim">Road Tax:</span>
-        <span class="text-xs ${rtDays < 30 ? 'red' : rtDays < 90 ? 'yellow' : 'green'}">${rtDays < 0 ? '⚠️ EXPIRED' : rtDays < 30 ? `⚠️ ${rtDays}d left` : v.roadtax}</span>
-      </div>` : ''}
-      ${insDays !== null ? `<div class="flex-center gap-8 mb-8">
-        <span class="text-xs text-dim">Insurance:</span>
-        <span class="text-xs ${insDays < 30 ? 'red' : insDays < 90 ? 'yellow' : 'green'}">${insDays < 0 ? '⚠️ EXPIRED' : insDays < 30 ? `⚠️ ${insDays}d left` : v.insurance}</span>
-      </div>` : ''}
+      ${rtDays !== null ? `<div class="flex-center gap-8 mb-4"><span class="text-xs text-dim">Road Tax:</span><span class="text-xs ${rtDays < 30 ? 'red' : rtDays < 90 ? 'yellow' : 'green'}">${rtDays < 0 ? '⚠️ EXPIRED' : rtDays < 30 ? `⚠️ ${rtDays}d left` : v.roadtax}</span></div>` : ''}
+      ${insDays !== null ? `<div class="flex-center gap-8 mb-8"><span class="text-xs text-dim">Insurance:</span><span class="text-xs ${insDays < 30 ? 'red' : insDays < 90 ? 'yellow' : 'green'}">${insDays < 0 ? '⚠️ EXPIRED' : insDays < 30 ? `⚠️ ${insDays}d left` : v.insurance}</span></div>` : ''}
       <div class="flex gap-8 mt-8">
         <select class="form-control" style="flex:1" onchange="updateVehicleStatus('${v.id}',this.value)">
           ${['Available','On Trip','Maintenance','Repair','Inactive'].map(s=>`<option ${s===v.status?'selected':''}>${s}</option>`).join('')}
@@ -1630,43 +1682,45 @@ function renderVehicles() {
     </div>`;
   }).join('') || '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🚙</div><p>No vehicles yet</p></div>';
 }
+window.renderVehicles = renderVehicles;
 
-function updateVehicleStatus(id, status) {
-  const v = db.vehicles.find(x => x.id === id);
-  if (v) { v.status = status; save(); toast(`${v.plate} status updated`, 'success'); }
-}
+window.updateVehicleStatus = async function(id, status) {
+  const v = db.vehicles.find(x => x.id === id); if (!v) return;
+  v.status = status;
+  await saveRecord('vehicles', v);
+  toast(`${v.plate} status updated`, 'success');
+};
 
-function openVehicleModal() {
+window.openVehicleModal = function() {
   document.getElementById('edit-vehicle-id').value = '';
   ['v-plate','v-model','v-year','v-color','v-roadtax','v-insurance'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('v-status').value = 'Available';
   openModal('modal-vehicle');
-}
+};
 
-function editVehicle(id) {
-  const v = db.vehicles.find(x => x.id === id);
-  if (!v) return;
+window.editVehicle = function(id) {
+  const v = db.vehicles.find(x => x.id === id); if (!v) return;
   document.getElementById('edit-vehicle-id').value = id;
   document.getElementById('v-plate').value = v.plate;
   document.getElementById('v-model').value = v.model;
-  document.getElementById('v-year').value = v.year;
-  document.getElementById('v-color').value = v.color;
+  document.getElementById('v-year').value = v.year||'';
+  document.getElementById('v-color').value = v.color||'';
   document.getElementById('v-status').value = v.status;
-  document.getElementById('v-roadtax').value = v.roadtax;
-  document.getElementById('v-insurance').value = v.insurance;
+  document.getElementById('v-roadtax').value = v.roadtax||'';
+  document.getElementById('v-insurance').value = v.insurance||'';
   openModal('modal-vehicle');
-}
+};
 
-function saveVehicle() {
+window.saveVehicle = async function() {
   const plate = document.getElementById('v-plate').value.trim().toUpperCase();
   const model = document.getElementById('v-model').value.trim();
   if (!plate || !model) { toast('Plate and model required', 'error'); return; }
   const editId = document.getElementById('edit-vehicle-id').value;
   const vehicle = { id: editId || 'V'+Date.now(), plate, model, year: document.getElementById('v-year').value, color: document.getElementById('v-color').value, status: document.getElementById('v-status').value, roadtax: document.getElementById('v-roadtax').value, insurance: document.getElementById('v-insurance').value };
-  if (editId) { const idx = db.vehicles.findIndex(v => v.id === editId); db.vehicles[idx] = vehicle; toast('Vehicle updated ✓', 'success'); }
-  else { db.vehicles.push(vehicle); toast('Vehicle added ✓', 'success'); }
-  save(); closeModal('modal-vehicle'); renderVehicles();
-}
+  await saveRecord('vehicles', vehicle);
+  toast(editId ? 'Vehicle updated ✓' : 'Vehicle added ✓', 'success');
+  closeModal('modal-vehicle');
+};
 
 // ============================================================
 // INCOME
@@ -1675,53 +1729,41 @@ function renderIncome() {
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const typeF = document.getElementById('income-type-filter')?.value || '';
-  let list = [...db.income].sort((a,b) => b.date.localeCompare(a.date));
+  let list = [...db.income].sort((a,b) => (b.date||'').localeCompare(a.date||''));
   if (typeF) list = list.filter(i => i.type === typeF);
-
-  const monthTotal = db.income.filter(i => i.date.startsWith(thisMonth)).reduce((s,i) => s+i.amount, 0);
+  const monthTotal = db.income.filter(i => (i.date||'').startsWith(thisMonth)).reduce((s,i) => s+i.amount, 0);
   const avg = db.income.length ? db.income.reduce((s,i) => s+i.amount, 0) / db.income.length : 0;
-  const largest = db.income.reduce((m,i) => i.amount > m ? i.amount : m, 0);
-
   document.getElementById('income-month-total').textContent = 'RM '+monthTotal.toFixed(2);
   document.getElementById('income-total-records').textContent = db.income.length;
   document.getElementById('income-avg').textContent = 'RM '+avg.toFixed(2);
-
   const driverSel = document.getElementById('i-driver');
   if (driverSel) driverSel.innerHTML = '<option value="">Select Driver</option>' + db.drivers.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-
   document.getElementById('income-tbody').innerHTML = list.map(i => {
     const driver = db.drivers.find(d => d.id === i.driverId);
-    return `<tr>
-      <td>${i.date}</td>
-      <td><span class="badge badge-green">${i.type}</span></td>
-      <td class="text-sm">${i.desc || '—'}</td>
-      <td class="text-sm">${driver?.name || '—'}</td>
-      <td class="text-sm text-muted">${i.payment}</td>
-      <td class="font-bold green">RM ${parseFloat(i.amount).toFixed(2)}</td>
-    </tr>`;
+    return `<tr><td>${i.date}</td><td><span class="badge badge-green">${i.type}</span></td><td class="text-sm">${i.desc || '—'}</td><td class="text-sm">${driver?.name || '—'}</td><td class="text-sm text-muted">${i.payment}</td><td class="font-bold green">RM ${parseFloat(i.amount).toFixed(2)}</td></tr>`;
   }).join('') || '<tr><td colspan="6"><div class="empty-state"><div class="icon">💰</div><p>No income recorded</p></div></td></tr>';
 }
+window.renderIncome = renderIncome;
+window.filterIncome = renderIncome;
 
-function filterIncome() { renderIncome(); }
-
-function openIncomeModal() {
+window.openIncomeModal = function() {
   document.getElementById('i-date').value = today();
   document.getElementById('i-desc').value = '';
   document.getElementById('i-amount').value = '';
   const driverSel = document.getElementById('i-driver');
   driverSel.innerHTML = '<option value="">Select Driver</option>' + db.drivers.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
   openModal('modal-income');
-}
+};
 
-function saveIncome() {
+window.saveIncome = async function() {
   const date = document.getElementById('i-date').value;
   const amount = parseFloat(document.getElementById('i-amount').value);
   if (!date || !amount) { toast('Date and amount required', 'error'); return; }
-  db.income.push({ id:'I'+Date.now(), date, type: document.getElementById('i-type').value, desc: document.getElementById('i-desc').value, driverId: document.getElementById('i-driver').value, payment: document.getElementById('i-payment').value, amount });
-  save(); closeModal('modal-income'); toast('Income recorded ✓', 'success');
-  if (document.getElementById('page-income').classList.contains('active')) renderIncome();
-  renderDashboard();
-}
+  const income = { id:'I'+Date.now(), date, type: document.getElementById('i-type').value, desc: document.getElementById('i-desc').value, driverId: document.getElementById('i-driver').value, payment: document.getElementById('i-payment').value, amount };
+  await saveRecord('income', income);
+  toast('Income recorded ✓', 'success');
+  closeModal('modal-income');
+};
 
 // ============================================================
 // EXPENSES
@@ -1730,52 +1772,41 @@ function renderExpenses() {
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const typeF = document.getElementById('expense-type-filter')?.value || '';
-  let list = [...db.expenses].sort((a,b) => b.date.localeCompare(a.date));
+  let list = [...db.expenses].sort((a,b) => (b.date||'').localeCompare(a.date||''));
   if (typeF) list = list.filter(e => e.type === typeF);
-
-  const monthTotal = db.expenses.filter(e => e.date.startsWith(thisMonth)).reduce((s,e) => s+e.amount, 0);
+  const monthTotal = db.expenses.filter(e => (e.date||'').startsWith(thisMonth)).reduce((s,e) => s+e.amount, 0);
   const largest = db.expenses.reduce((m,e) => e.amount > m ? e.amount : m, 0);
-
   document.getElementById('expense-month-total').textContent = 'RM '+monthTotal.toFixed(2);
   document.getElementById('expense-total-records').textContent = db.expenses.length;
   document.getElementById('expense-largest').textContent = 'RM '+largest.toFixed(2);
-
   const vehicleSel = document.getElementById('ex-vehicle');
   if (vehicleSel) vehicleSel.innerHTML = '<option value="">Select Vehicle</option>' + db.vehicles.map(v => `<option value="${v.id}">${v.plate} — ${v.model}</option>`).join('');
-
   document.getElementById('expenses-tbody').innerHTML = list.map(e => {
     const vehicle = db.vehicles.find(v => v.id === e.vehicleId);
-    return `<tr>
-      <td>${e.date}</td>
-      <td><span class="badge badge-red">${e.type}</span></td>
-      <td class="text-sm">${e.desc || '—'}</td>
-      <td class="text-sm">${vehicle?.plate || '—'}</td>
-      <td class="text-sm text-muted">—</td>
-      <td class="font-bold red">RM ${parseFloat(e.amount).toFixed(2)}</td>
-    </tr>`;
+    return `<tr><td>${e.date}</td><td><span class="badge badge-red">${e.type}</span></td><td class="text-sm">${e.desc || '—'}</td><td class="text-sm">${vehicle?.plate || '—'}</td><td class="text-sm text-muted">—</td><td class="font-bold red">RM ${parseFloat(e.amount).toFixed(2)}</td></tr>`;
   }).join('') || '<tr><td colspan="6"><div class="empty-state"><div class="icon">💸</div><p>No expenses recorded</p></div></td></tr>';
 }
+window.renderExpenses = renderExpenses;
+window.filterExpenses = renderExpenses;
 
-function filterExpenses() { renderExpenses(); }
-
-function openExpenseModal() {
+window.openExpenseModal = function() {
   document.getElementById('ex-date').value = today();
   document.getElementById('ex-desc').value = '';
   document.getElementById('ex-amount').value = '';
   const vehicleSel = document.getElementById('ex-vehicle');
   vehicleSel.innerHTML = '<option value="">Select Vehicle</option>' + db.vehicles.map(v => `<option value="${v.id}">${v.plate} — ${v.model}</option>`).join('');
   openModal('modal-expense');
-}
+};
 
-function saveExpense() {
+window.saveExpense = async function() {
   const date = document.getElementById('ex-date').value;
   const amount = parseFloat(document.getElementById('ex-amount').value);
   if (!date || !amount) { toast('Date and amount required', 'error'); return; }
-  db.expenses.push({ id:'EX'+Date.now(), date, type: document.getElementById('ex-type').value, desc: document.getElementById('ex-desc').value, vehicleId: document.getElementById('ex-vehicle').value, amount });
-  save(); closeModal('modal-expense'); toast('Expense recorded ✓', 'success');
-  if (document.getElementById('page-expenses').classList.contains('active')) renderExpenses();
-  renderDashboard();
-}
+  const expense = { id:'EX'+Date.now(), date, type: document.getElementById('ex-type').value, desc: document.getElementById('ex-desc').value, vehicleId: document.getElementById('ex-vehicle').value, amount };
+  await saveRecord('expenses', expense);
+  toast('Expense recorded ✓', 'success');
+  closeModal('modal-expense');
+};
 
 // ============================================================
 // DAILY CLOSING
@@ -1787,176 +1818,120 @@ function renderClosing() {
   const totalIncome = todayIncome.reduce((s,i) => s+i.amount, 0);
   const totalExpenses = todayExpenses.reduce((s,e) => s+e.amount, 0);
   const profit = totalIncome - totalExpenses;
-
   document.getElementById('close-income').textContent = 'RM '+totalIncome.toFixed(2);
   document.getElementById('close-expenses').textContent = 'RM '+totalExpenses.toFixed(2);
   document.getElementById('close-profit').textContent = (profit >= 0 ? '+' : '') + 'RM '+profit.toFixed(2);
   document.getElementById('close-profit').style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
   document.getElementById('close-profit-pill').innerHTML = `<div class="profit-pill ${profit>=0?'up':'down'}">${profit>=0?'▲ Profit':'▼ Loss'}</div>`;
-
-  // Income breakdown
   const incomeByType = {};
   todayIncome.forEach(i => { incomeByType[i.type] = (incomeByType[i.type]||0) + i.amount; });
-  document.getElementById('close-income-breakdown').innerHTML = Object.entries(incomeByType).map(([type, amt]) => `
-    <div class="flex-center" style="justify-content:space-between;margin-bottom:6px">
-      <span class="text-sm text-muted">${type}</span>
-      <span class="text-sm font-bold green">RM ${amt.toFixed(2)}</span>
-    </div>
-  `).join('') || '<div class="text-xs text-dim">No income recorded today</div>';
-
+  document.getElementById('close-income-breakdown').innerHTML = Object.entries(incomeByType).map(([type, amt]) => `<div class="flex-center" style="justify-content:space-between;margin-bottom:6px"><span class="text-sm text-muted">${type}</span><span class="text-sm font-bold green">RM ${amt.toFixed(2)}</span></div>`).join('') || '<div class="text-xs text-dim">No income today</div>';
   const expByType = {};
   todayExpenses.forEach(e => { expByType[e.type] = (expByType[e.type]||0) + e.amount; });
-  document.getElementById('close-expense-breakdown').innerHTML = Object.entries(expByType).map(([type, amt]) => `
-    <div class="flex-center" style="justify-content:space-between;margin-bottom:6px">
-      <span class="text-sm text-muted">${type}</span>
-      <span class="text-sm font-bold red">RM ${amt.toFixed(2)}</span>
-    </div>
-  `).join('') || '<div class="text-xs text-dim">No expenses recorded today</div>';
-
+  document.getElementById('close-expense-breakdown').innerHTML = Object.entries(expByType).map(([type, amt]) => `<div class="flex-center" style="justify-content:space-between;margin-bottom:6px"><span class="text-sm text-muted">${type}</span><span class="text-sm font-bold red">RM ${amt.toFixed(2)}</span></div>`).join('') || '<div class="text-xs text-dim">No expenses today</div>';
   const completedTrips = db.bookings.filter(b => b.date === todayStr && b.status === 'Completed').length;
   const outstanding = db.bookings.filter(b => b.date === todayStr && parseFloat(b.balance) > 0).reduce((s,b) => s+parseFloat(b.balance), 0);
-
   document.getElementById('close-trips').textContent = completedTrips;
   document.getElementById('close-outstanding').textContent = 'RM '+outstanding.toFixed(2);
   document.getElementById('close-newcust').textContent = db.customers.filter(c => c.createdAt === todayStr).length;
 }
+window.renderClosing = renderClosing;
 
-function saveClosing() {
+window.saveClosing = async function() {
   const todayStr = today();
-  const todayIncome = db.income.filter(i => i.date === todayStr).reduce((s,i) => s+i.amount, 0);
-  const todayExpenses = db.expenses.filter(e => e.date === todayStr).reduce((s,e) => s+e.amount, 0);
-  db.closings.push({ date: todayStr, income: todayIncome, expenses: todayExpenses, profit: todayIncome - todayExpenses, notes: document.getElementById('close-notes').value, savedAt: new Date().toISOString() });
-  save(); toast('Daily closing saved ✓', 'success');
-}
+  const totalIncome = db.income.filter(i => i.date === todayStr).reduce((s,i) => s+i.amount, 0);
+  const totalExpenses = db.expenses.filter(e => e.date === todayStr).reduce((s,e) => s+e.amount, 0);
+  const closing = { id: 'CL'+Date.now(), date: todayStr, income: totalIncome, expenses: totalExpenses, profit: totalIncome - totalExpenses, notes: document.getElementById('close-notes').value, savedAt: new Date().toISOString() };
+  await saveRecord('closings', closing);
+  toast('Daily closing saved ✓', 'success');
+};
 
 // ============================================================
 // REPORTS
 // ============================================================
 function renderReports(tab) {
-  const tabs = document.querySelectorAll('#report-tabs .tab');
-  tabs.forEach((t,i) => { t.classList.toggle('active', ['summary','income','expense','booking'][i] === tab); });
-
+  document.querySelectorAll('#report-tabs .tab').forEach((t,i) => { t.classList.toggle('active', ['summary','income','expense','booking'][i] === tab); });
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const el = document.getElementById('report-content');
-
   if (tab === 'summary') {
     const totalIncome = db.income.reduce((s,i) => s+i.amount, 0);
     const totalExpenses = db.expenses.reduce((s,e) => s+e.amount, 0);
     const netProfit = totalIncome - totalExpenses;
-    const monthIncome = db.income.filter(i => i.date.startsWith(thisMonth)).reduce((s,i) => s+i.amount, 0);
-    const monthExpenses = db.expenses.filter(e => e.date.startsWith(thisMonth)).reduce((s,e) => s+e.amount, 0);
-
-    el.innerHTML = `
-      <div class="grid-4 mb-16">
-        <div class="stat-card green"><div class="stat-label">All-Time Income</div><div class="stat-value green">RM ${totalIncome.toFixed(2)}</div></div>
-        <div class="stat-card red"><div class="stat-label">All-Time Expenses</div><div class="stat-value red">RM ${totalExpenses.toFixed(2)}</div></div>
-        <div class="stat-card purple"><div class="stat-label">Net Profit</div><div class="stat-value purple">RM ${netProfit.toFixed(2)}</div></div>
-        <div class="stat-card blue"><div class="stat-label">Total Bookings</div><div class="stat-value blue">${db.bookings.length}</div></div>
-      </div>
-      <div class="grid-3">
-        <div class="card">
-          <div class="section-title mb-16">This Month</div>
-          <div class="detail-row"><div class="detail-label">Income</div><div class="detail-value green font-bold">RM ${monthIncome.toFixed(2)}</div></div>
-          <div class="detail-row"><div class="detail-label">Expenses</div><div class="detail-value red font-bold">RM ${monthExpenses.toFixed(2)}</div></div>
-          <div class="detail-row"><div class="detail-label">Net Profit</div><div class="detail-value font-bold" style="color:${monthIncome-monthExpenses>=0?'var(--green)':'var(--red)'}">RM ${(monthIncome-monthExpenses).toFixed(2)}</div></div>
-        </div>
-        <div class="card">
-          <div class="section-title mb-16">Bookings Summary</div>
-          ${['Completed','Confirmed','New','Cancelled','No Show'].map(s => {
-            const count = db.bookings.filter(b => b.status === s).length;
-            return `<div class="detail-row"><div class="detail-label">${s}</div><div class="detail-value font-bold">${count}</div></div>`;
-          }).join('')}
-        </div>
-        <div class="card">
-          <div class="section-title mb-16">Top Customers</div>
-          ${db.customers.map(c => {
-            const spent = db.bookings.filter(b => b.customerId===c.id).reduce((s,b)=>s+parseFloat(b.amount||0),0);
-            return { name: c.name, spent };
-          }).sort((a,b)=>b.spent-a.spent).slice(0,5).map(c =>
-            `<div class="detail-row"><div class="detail-label text-sm">${c.name}</div><div class="detail-value green font-bold">RM ${c.spent.toFixed(2)}</div></div>`
-          ).join('') || '<div class="text-dim text-sm">No data</div>'}
-        </div>
-      </div>`;
+    const monthIncome = db.income.filter(i => (i.date||'').startsWith(thisMonth)).reduce((s,i) => s+i.amount, 0);
+    const monthExpenses = db.expenses.filter(e => (e.date||'').startsWith(thisMonth)).reduce((s,e) => s+e.amount, 0);
+    el.innerHTML = `<div class="grid-4 mb-16">
+      <div class="stat-card green"><div class="stat-label">All-Time Income</div><div class="stat-value green">RM ${totalIncome.toFixed(2)}</div></div>
+      <div class="stat-card red"><div class="stat-label">All-Time Expenses</div><div class="stat-value red">RM ${totalExpenses.toFixed(2)}</div></div>
+      <div class="stat-card purple"><div class="stat-label">Net Profit</div><div class="stat-value purple">RM ${netProfit.toFixed(2)}</div></div>
+      <div class="stat-card blue"><div class="stat-label">Total Bookings</div><div class="stat-value blue">${db.bookings.length}</div></div>
+    </div>
+    <div class="grid-3"><div class="card">
+      <div class="section-title mb-16">This Month</div>
+      <div class="detail-row"><div class="detail-label">Income</div><div class="detail-value green font-bold">RM ${monthIncome.toFixed(2)}</div></div>
+      <div class="detail-row"><div class="detail-label">Expenses</div><div class="detail-value red font-bold">RM ${monthExpenses.toFixed(2)}</div></div>
+      <div class="detail-row"><div class="detail-label">Net Profit</div><div class="detail-value font-bold" style="color:${monthIncome-monthExpenses>=0?'var(--green)':'var(--red)'}">RM ${(monthIncome-monthExpenses).toFixed(2)}</div></div>
+    </div>
+    <div class="card"><div class="section-title mb-16">Bookings Summary</div>
+      ${['Completed','Confirmed','New','Cancelled','No Show'].map(s => `<div class="detail-row"><div class="detail-label">${s}</div><div class="detail-value font-bold">${db.bookings.filter(b => b.status === s).length}</div></div>`).join('')}
+    </div>
+    <div class="card"><div class="section-title mb-16">Top Customers</div>
+      ${db.customers.map(c => ({ name: c.name, spent: db.bookings.filter(b => b.customerId===c.id).reduce((s,b)=>s+parseFloat(b.amount||0),0) })).sort((a,b)=>b.spent-a.spent).slice(0,5).map(c => `<div class="detail-row"><div class="detail-label text-sm">${c.name}</div><div class="detail-value green font-bold">RM ${c.spent.toFixed(2)}</div></div>`).join('') || '<div class="text-dim text-sm">No data</div>'}
+    </div></div>`;
   } else if (tab === 'income') {
     const byType = {};
     db.income.forEach(i => { byType[i.type] = (byType[i.type]||0) + i.amount; });
-    el.innerHTML = `<div class="card"><div class="section-title mb-16">Income by Type</div><div class="table-wrap"><table><thead><tr><th>Type</th><th>Total (RM)</th><th>% of Total</th></tr></thead><tbody>
-      ${Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([type,amt]) => {
-        const total = db.income.reduce((s,i)=>s+i.amount,0);
-        const pct = total ? (amt/total*100).toFixed(1) : 0;
-        return `<tr><td>${type}</td><td class="font-bold green">RM ${amt.toFixed(2)}</td><td>
-          <div class="flex-center gap-8"><div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:${pct}%;background:var(--green)"></div></div><span class="text-sm">${pct}%</span></div>
-        </td></tr>`;
-      }).join('')}
-    </tbody></table></div></div>`;
+    el.innerHTML = `<div class="card"><div class="section-title mb-16">Income by Type</div><div class="table-wrap"><table><thead><tr><th>Type</th><th>Total (RM)</th><th>%</th></tr></thead><tbody>${Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([type,amt]) => { const total = db.income.reduce((s,i)=>s+i.amount,0); const pct = total ? (amt/total*100).toFixed(1) : 0; return `<tr><td>${type}</td><td class="font-bold green">RM ${amt.toFixed(2)}</td><td><div class="flex-center gap-8"><div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:${pct}%;background:var(--green)"></div></div><span class="text-sm">${pct}%</span></div></td></tr>`; }).join('')}</tbody></table></div></div>`;
   } else if (tab === 'expense') {
     const byType = {};
     db.expenses.forEach(e => { byType[e.type] = (byType[e.type]||0) + e.amount; });
-    el.innerHTML = `<div class="card"><div class="section-title mb-16">Expenses by Category</div><div class="table-wrap"><table><thead><tr><th>Category</th><th>Total (RM)</th><th>% of Total</th></tr></thead><tbody>
-      ${Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([type,amt]) => {
-        const total = db.expenses.reduce((s,e)=>s+e.amount,0);
-        const pct = total ? (amt/total*100).toFixed(1) : 0;
-        return `<tr><td>${type}</td><td class="font-bold red">RM ${amt.toFixed(2)}</td><td>
-          <div class="flex-center gap-8"><div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:${pct}%;background:var(--red)"></div></div><span class="text-sm">${pct}%</span></div>
-        </td></tr>`;
-      }).join('')}
-    </tbody></table></div></div>`;
+    el.innerHTML = `<div class="card"><div class="section-title mb-16">Expenses by Category</div><div class="table-wrap"><table><thead><tr><th>Category</th><th>Total (RM)</th><th>%</th></tr></thead><tbody>${Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([type,amt]) => { const total = db.expenses.reduce((s,e)=>s+e.amount,0); const pct = total ? (amt/total*100).toFixed(1) : 0; return `<tr><td>${type}</td><td class="font-bold red">RM ${amt.toFixed(2)}</td><td><div class="flex-center gap-8"><div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:${pct}%;background:var(--red)"></div></div><span class="text-sm">${pct}%</span></div></td></tr>`; }).join('')}</tbody></table></div></div>`;
   } else if (tab === 'booking') {
-    el.innerHTML = `<div class="card"><div class="section-title mb-16">All Bookings Report</div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Customer</th><th>Type</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>
-      ${db.bookings.sort((a,b)=>b.date.localeCompare(a.date)).map(b => {
-        const c = db.customers.find(x => x.id === b.customerId);
-        return `<tr><td class="td-mono">${b.id}</td><td>${c?.name||'—'}</td><td class="text-sm">${b.type}</td><td>${b.date}</td><td class="font-bold">RM ${parseFloat(b.amount).toFixed(2)}</td><td>${bookingStatusBadge(b.status)}</td></tr>`;
-      }).join('') || '<tr><td colspan="6" class="text-center text-dim">No bookings</td></tr>'}
-    </tbody></table></div></div>`;
+    el.innerHTML = `<div class="card"><div class="section-title mb-16">All Bookings</div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Customer</th><th>Type</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>${db.bookings.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(b => { const c = db.customers.find(x => x.id === b.customerId); return `<tr><td class="td-mono">${b.id||'—'}</td><td>${c?.name||'—'}</td><td class="text-sm">${b.type||''}</td><td>${b.date||''}</td><td class="font-bold">RM ${parseFloat(b.amount||0).toFixed(2)}</td><td>${bookingStatusBadge(b.status)}</td></tr>`; }).join('')}</tbody></table></div></div>`;
   }
 }
-
-function switchReportTab(tab) { renderReports(tab); }
+window.renderReports = renderReports;
+window.switchReportTab = function(tab) { renderReports(tab); };
 
 // ============================================================
 // NOTIFICATIONS
 // ============================================================
 function renderNotifications() {
   const el = document.getElementById('notifications-list');
-  if (!db.notifications.length) {
-    el.innerHTML = '<div class="empty-state"><div class="icon">🔔</div><p>No notifications</p></div>'; return;
-  }
+  if (!db.notifications.length) { el.innerHTML = '<div class="empty-state"><div class="icon">🔔</div><p>No notifications</p></div>'; return; }
   el.innerHTML = db.notifications.map(n => `
-    <div class="card mb-8 ${n.read ? '' : 'card'}" style="${n.read ? 'opacity:0.6' : 'border-color:rgba(79,110,247,0.4)'}">
+    <div class="card mb-8" style="${n.read ? 'opacity:0.6' : 'border-color:rgba(79,110,247,0.4)'}">
       <div class="flex-center gap-8" style="justify-content:space-between">
         <div class="flex-center gap-8">
           <span>${n.type === 'warning' ? '⚠️' : n.type === 'alert' ? '🚨' : 'ℹ️'}</span>
-          <div>
-            <div class="font-bold text-sm">${n.title}</div>
-            <div class="text-sm text-muted mt-4">${n.msg}</div>
-          </div>
+          <div><div class="font-bold text-sm">${n.title}</div><div class="text-sm text-muted mt-4">${n.msg}</div></div>
         </div>
         <div class="flex gap-8">
           <span class="text-xs text-dim">${n.time}</span>
           ${!n.read ? `<button class="btn btn-ghost btn-sm" onclick="markRead('${n.id}')">Mark Read</button>` : ''}
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
+window.renderNotifications = renderNotifications;
 
-function markRead(id) {
-  const n = db.notifications.find(x => x.id === id);
-  if (n) { n.read = true; save(); renderNotifications(); updateBadges(); }
-}
+window.markRead = async function(id) {
+  const n = db.notifications.find(x => x.id === id); if (!n) return;
+  n.read = true;
+  await saveRecord('notifications', n);
+  updateBadges();
+};
 
 // ============================================================
 // BADGES
 // ============================================================
 function updateBadges() {
   const newBookings = db.bookings.filter(b => b.status === 'New').length;
-  document.getElementById('badge-bookings').textContent = newBookings;
-  document.getElementById('badge-bookings').style.display = newBookings ? 'inline' : 'none';
-
+  const badgeEl = document.getElementById('badge-bookings');
+  if (badgeEl) { badgeEl.textContent = newBookings; badgeEl.style.display = newBookings ? 'inline' : 'none'; }
   const unread = db.notifications.filter(n => !n.read).length;
-  document.getElementById('badge-notif').textContent = unread;
-  document.getElementById('badge-notif').style.display = unread ? 'inline' : 'none';
+  const notifEl = document.getElementById('badge-notif');
+  if (notifEl) { notifEl.textContent = unread; notifEl.style.display = unread ? 'inline' : 'none'; }
 }
 
 // ============================================================
@@ -1964,22 +1939,19 @@ function updateBadges() {
 // ============================================================
 function bookingStatusBadge(status) {
   const map = { 'New':'badge-blue', 'Confirmed':'badge-cyan', 'Assigned':'badge-purple', 'Driver On The Way':'badge-yellow', 'Passenger Picked Up':'badge-orange', 'Completed':'badge-green', 'Cancelled':'badge-gray', 'No Show':'badge-red' };
-  return `<span class="badge ${map[status]||'badge-gray'}">${status}</span>`;
+  return `<span class="badge ${map[status]||'badge-gray'}">${status||'—'}</span>`;
 }
-
 function paymentStatusBadge(status) {
   const map = { 'Pending':'badge-yellow', 'Deposit Paid':'badge-blue', 'Partial Paid':'badge-orange', 'Fully Paid':'badge-green', 'Cancelled':'badge-gray', 'Refunded':'badge-purple' };
-  return `<span class="badge ${map[status]||'badge-gray'}">${status}</span>`;
+  return `<span class="badge ${map[status]||'badge-gray'}">${status||'—'}</span>`;
 }
-
 function driverStatusBadge(status) {
   const map = { 'Available':'badge-green', 'Busy':'badge-yellow', 'Driving':'badge-blue', 'Resting':'badge-cyan', 'Off Duty':'badge-gray', 'Leave':'badge-orange', 'Emergency':'badge-red' };
-  return `<span class="badge ${map[status]||'badge-gray'}">${status}</span>`;
+  return `<span class="badge ${map[status]||'badge-gray'}">${status||'—'}</span>`;
 }
-
 function vehicleStatusBadge(status) {
   const map = { 'Available':'badge-green', 'On Trip':'badge-blue', 'Maintenance':'badge-yellow', 'Repair':'badge-orange', 'Inactive':'badge-gray' };
-  return `<span class="badge ${map[status]||'badge-gray'}">${status}</span>`;
+  return `<span class="badge ${map[status]||'badge-gray'}">${status||'—'}</span>`;
 }
 
 // ============================================================
@@ -1987,8 +1959,8 @@ function vehicleStatusBadge(status) {
 // ============================================================
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-// Close modal on overlay click
+window.openModal = openModal;
+window.closeModal = closeModal;
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
 });
@@ -2001,22 +1973,25 @@ function toast(msg, type = 'success') {
   el.className = `toast-item ${type}`;
   el.innerHTML = `<span>${type === 'success' ? '✓' : '✕'}</span> ${msg}`;
   document.getElementById('toast').appendChild(el);
-  setTimeout(() => el.remove(), 3000);
+  setTimeout(() => el.remove(), 3500);
 }
+window.toast = toast;
 
 // ============================================================
 // SETTINGS
 // ============================================================
-function saveBizSettings() { toast('Settings saved ✓', 'success'); }
-function exportData() {
+window.saveBizSettings = function() { toast('Settings saved ✓', 'success'); };
+window.exportData = function() {
   const blob = new Blob([JSON.stringify(db, null, 2)], { type:'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = 'rideflow-backup.json'; a.click();
+  a.download = 'applerider-backup.json'; a.click();
   toast('Data exported ✓', 'success');
-}
-function clearData() {
-  localStorage.removeItem('rideflow_db'); location.reload();
-}
+};
+window.clearData = function() {
+  if (confirm('This will delete ALL data from Firebase. Are you sure?')) {
+    toast('Please delete data from Firebase console directly.', 'error');
+  }
+};
 
 // ============================================================
 // START
