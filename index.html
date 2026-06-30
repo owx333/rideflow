@@ -510,6 +510,17 @@
   .trip-dot.pickup { background: var(--green); }
   .trip-dot.dropoff { background: var(--red); }
 
+  /* ROGER */
+  .roger-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .roger-tab { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+  .roger-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .roger-card { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid #f59e0b; border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 12px; }
+  .roger-card.claimed { border-left-color: var(--accent); }
+  .roger-card.history { border-left-color: var(--green); opacity: 0.92; }
+  .roger-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; background: rgba(245,158,11,0.15); color: #b45309; }
+  .roger-status-steps { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .roger-balance { font-size: 18px; font-weight: 800; color: var(--red); }
+
   /* ACTION BTNS */
   .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
   .table-actions { white-space: nowrap; }
@@ -599,60 +610,64 @@
 
   <nav class="nav">
     <div class="nav-section">
-      <div class="nav-label">Overview</div>
+      <div class="nav-label" data-i18n="nav.overview">Overview</div>
       <div class="nav-item active admin-only" onclick="nav('dashboard')">
-        <span class="icon">📊</span><span>Dashboard</span>
+        <span class="icon">📊</span><span data-i18n="nav.dashboard">Dashboard</span>
       </div>
       <div class="nav-item admin-only" onclick="nav('calendar')">
-        <span class="icon">📅</span><span>Calendar</span>
+        <span class="icon">📅</span><span data-i18n="nav.calendar">Calendar</span>
       </div>
     </div>
     <div class="nav-section">
-      <div class="nav-label">Operations</div>
+      <div class="nav-label" data-i18n="nav.operations">Operations</div>
       <div class="nav-item admin-only" onclick="nav('bookings')" id="nav-bookings">
-        <span class="icon">📋</span><span>Bookings</span>
+        <span class="icon">📋</span><span data-i18n="nav.bookings">Bookings</span>
         <span class="nav-badge" id="badge-bookings">0</span>
       </div>
       <div class="nav-item driver-nav" onclick="nav('mytrips')" id="nav-mytrips" style="display:none">
-        <span class="icon">🚗</span><span>My Trips</span>
+        <span class="icon">🚗</span><span data-i18n="nav.mytrips">My Trips</span>
         <span class="nav-badge" id="badge-mytrips">0</span>
       </div>
+      <div class="nav-item" onclick="nav('roger')" id="nav-roger">
+        <span class="icon">📻</span><span data-i18n="nav.roger">Roger</span>
+        <span class="nav-badge" id="badge-roger" style="display:none">0</span>
+      </div>
       <div class="nav-item admin-only" onclick="nav('customers')">
-        <span class="icon">👥</span><span>Customers</span>
+        <span class="icon">👥</span><span data-i18n="nav.customers">Customers</span>
       </div>
       <div class="nav-item admin-only" onclick="nav('drivers')">
-        <span class="icon">🧑‍✈️</span><span>Drivers</span>
+        <span class="icon">🧑‍✈️</span><span data-i18n="nav.drivers">Drivers</span>
       </div>
       <div class="nav-item admin-only" onclick="nav('vehicles')">
-        <span class="icon">🚙</span><span>Vehicles</span>
+        <span class="icon">🚙</span><span data-i18n="nav.vehicles">Vehicles</span>
       </div>
     </div>
     <div class="nav-section">
-      <div class="nav-label">Finance</div>
+      <div class="nav-label" data-i18n="nav.finance">Finance</div>
       <div class="nav-item" onclick="nav('income')">
-        <span class="icon">💰</span><span>Income</span>
+        <span class="icon">💰</span><span data-i18n="nav.income">Income</span>
       </div>
       <div class="nav-item admin-only" onclick="nav('expenses')">
-        <span class="icon">💸</span><span>Expenses</span>
+        <span class="icon">💸</span><span data-i18n="nav.expenses">Expenses</span>
       </div>
       <div class="nav-item admin-only" onclick="nav('closing')">
-        <span class="icon">🔐</span><span>Daily Close</span>
+        <span class="icon">🔐</span><span data-i18n="nav.closing">Daily Close</span>
       </div>
     </div>
     <div class="nav-section">
-      <div class="nav-label">Insights</div>
+      <div class="nav-label" data-i18n="nav.insights">Insights</div>
       <div class="nav-item admin-only" onclick="nav('reports')">
-        <span class="icon">📈</span><span>Reports</span>
+        <span class="icon">📈</span><span data-i18n="nav.reports">Reports</span>
       </div>
       <div class="nav-item admin-only" onclick="nav('notifications')">
-        <span class="icon">🔔</span><span>Alerts</span>
+        <span class="icon">🔔</span><span data-i18n="nav.notifications">Alerts</span>
         <span class="nav-badge red" id="badge-notif">3</span>
       </div>
     </div>
     <div class="nav-section">
-      <div class="nav-label">System</div>
+      <div class="nav-label" data-i18n="nav.system">System</div>
       <div class="nav-item admin-only" onclick="nav('settings')">
-        <span class="icon">⚙️</span><span>Settings</span>
+        <span class="icon">⚙️</span><span data-i18n="nav.settings">Settings</span>
       </div>
     </div>
   </nav>
@@ -678,13 +693,14 @@
     <div class="topbar-controls">
       <span id="firebase-status"><span class="fb-status pending">● Connecting...</span></span>
       <button class="icon-btn" onclick="openCommandPalette()" title="Command Palette (⌘K)">🔍<span class="cmd-hint">⌘K</span></button>
+      <button class="icon-btn" id="lang-toggle" onclick="toggleLang()" title="Language">中文</button>
       <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">🌙</button>
       <span id="user-email-display" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Logout</button>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()" data-i18n="btn.logout">Logout</button>
     </div>
   </div>
 
-  <div class="ptr-indicator" id="ptr-indicator"><div class="ptr-spinner"></div><span id="ptr-text">↓ Pull to refresh</span></div>
+  <div class="ptr-indicator" id="ptr-indicator"><div class="ptr-spinner"></div><span id="ptr-text" data-i18n="ptr.pull">↓ Pull to refresh</span></div>
   <div class="page-skeleton" id="page-skeleton"><div class="skel-grid"><div class="skel-block"></div><div class="skel-block"></div><div class="skel-block"></div><div class="skel-block"></div></div><div class="skel-block" style="height:200px"></div></div>
   <div class="content" id="content">
 
@@ -693,41 +709,41 @@
       <div class="grid-4 mb-16" id="dash-stats-grid">
         <div class="stat-card blue stagger-item">
           <div class="stat-icon">📋</div>
-          <div class="stat-label">Today's Bookings</div>
+          <div class="stat-label" data-i18n="stat.todayBookings">Today's Bookings</div>
           <div class="stat-value blue" id="stat-today-bookings" data-countup="0">0</div>
-          <div class="stat-sub">Active trips</div>
+          <div class="stat-sub" data-i18n="stat.sub.activeTrips">Active trips</div>
         </div>
         <div class="stat-card green stagger-item">
           <div class="stat-icon">💰</div>
-          <div class="stat-label">Today's Income</div>
+          <div class="stat-label" data-i18n="stat.todayIncome">Today's Income</div>
           <div class="stat-value green" id="stat-today-income" data-countup-prefix="RM " data-countup-decimals="2">RM 0.00</div>
-          <div class="stat-sub">Collected</div>
+          <div class="stat-sub" data-i18n="stat.sub.collected">Collected</div>
         </div>
         <div class="stat-card yellow stagger-item">
           <div class="stat-icon">💸</div>
-          <div class="stat-label">Today's Expenses</div>
+          <div class="stat-label" data-i18n="stat.todayExpenses">Today's Expenses</div>
           <div class="stat-value yellow" id="stat-today-expenses" data-countup-prefix="RM " data-countup-decimals="2">RM 0.00</div>
-          <div class="stat-sub">Recorded</div>
+          <div class="stat-sub" data-i18n="stat.sub.recorded">Recorded</div>
         </div>
         <div class="stat-card purple stagger-item">
           <div class="stat-icon">📊</div>
-          <div class="stat-label">Today's Profit</div>
+          <div class="stat-label" data-i18n="stat.todayProfit">Today's Profit</div>
           <div class="stat-value purple" id="stat-today-profit" data-countup-prefix="RM " data-countup-decimals="2">RM 0.00</div>
-          <div class="stat-sub">Net earnings</div>
+          <div class="stat-sub" data-i18n="stat.sub.netEarnings">Net earnings</div>
         </div>
       </div>
 
       <div class="grid-2 mb-16">
         <div class="card">
           <div class="section-header mb-8">
-            <div class="section-title">Recent Bookings</div>
-            <button class="btn btn-ghost btn-sm" onclick="nav('bookings')">View All</button>
+            <div class="section-title" data-i18n="section.recentBookings">Recent Bookings</div>
+            <button class="btn btn-ghost btn-sm" onclick="nav('bookings')" data-i18n="btn.viewAll">View All</button>
           </div>
           <div id="dash-recent-bookings"></div>
         </div>
         <div class="card">
           <div class="section-header mb-8">
-            <div class="section-title">Driver Status</div>
+            <div class="section-title" data-i18n="section.driverStatus">Driver Status</div>
           </div>
           <div id="dash-drivers"></div>
         </div>
@@ -735,26 +751,26 @@
 
       <div class="grid-3">
         <div class="card">
-          <div class="section-title mb-16">Monthly Income</div>
+          <div class="section-title mb-16" data-i18n="section.monthlyIncome">Monthly Income</div>
           <div id="monthly-chart" class="chart-bars"></div>
           <div style="display:flex;justify-content:space-between;margin-top:8px" id="monthly-labels"></div>
         </div>
         <div class="card">
-          <div class="section-title mb-16">Outstanding Payments</div>
+          <div class="section-title mb-16" data-i18n="section.outstanding">Outstanding Payments</div>
           <div id="dash-outstanding"></div>
         </div>
         <div class="card">
-          <div class="section-title mb-16">Quick Actions</div>
+          <div class="section-title mb-16" data-i18n="section.quickActions">Quick Actions</div>
           <div style="display:flex;flex-direction:column;gap:8px">
-            <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openBookingModal()">+ New Booking</button>
-            <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="openExpenseModal()">+ Record Expense</button>
-            <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="openIncomeModal()">+ Add Income</button>
+            <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openBookingModal()" data-i18n="btn.newBooking">+ New Booking</button>
+            <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="openExpenseModal()" data-i18n="btn.recordExpense">+ Record Expense</button>
+            <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="openIncomeModal()" data-i18n="btn.addIncome">+ Add Income</button>
             <div class="platform-chips" style="margin-top:12px">
               <div class="platform-chip grab" onclick="quickIncome('Grab')"><span class="chip-icon">🟢</span>Grab</div>
               <div class="platform-chip indrive" onclick="quickIncome('inDrive')"><span class="chip-icon">🟡</span>inDrive</div>
               <div class="platform-chip" onclick="quickIncome('Maxim')"><span class="chip-icon">🔵</span>Maxim</div>
             </div>
-            <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="nav('closing')">🔐 Daily Close</button>
+            <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="nav('closing')" data-i18n="btn.dailyClose">🔐 Daily Close</button>
           </div>
         </div>
       </div>
@@ -778,28 +794,28 @@
     <div class="page" id="page-bookings">
       <div class="section-header">
         <div>
-          <div class="section-title">Bookings</div>
+          <div class="section-title" data-i18n="page.bookings">Bookings</div>
         </div>
         <div class="flex gap-8">
           <div class="search-bar">
             <span class="icon">🔍</span>
-            <input type="text" placeholder="Search bookings..." id="booking-search" oninput="filterBookings()">
+            <input type="text" data-i18n-placeholder="search.bookings" placeholder="Search bookings..." id="booking-search" oninput="filterBookings()">
           </div>
           <select class="form-control" style="width:140px" id="booking-status-filter" onchange="filterBookings()">
-            <option value="">All Status</option>
+            <option value="" data-i18n="allStatus">All Status</option>
             <option>New</option><option>Confirmed</option><option>Assigned</option>
             <option>Driver On The Way</option><option>Passenger Picked Up</option>
             <option>Completed</option><option>Cancelled</option><option>No Show</option>
           </select>
-          <button class="btn btn-primary" onclick="openBookingModal()">+ New Booking</button>
+          <button class="btn btn-primary" onclick="openBookingModal()" data-i18n="btn.newBooking">+ New Booking</button>
         </div>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Booking ID</th><th>Customer</th><th>Type</th><th>Date & Time</th>
-              <th>Pickup</th><th>Dropoff</th><th>Amount</th><th>Payment</th><th>Status</th><th>Action</th>
+              <th data-i18n="th.bookingId">Booking ID</th><th data-i18n="th.customer">Customer</th><th data-i18n="th.type">Type</th><th data-i18n="th.dateTime">Date & Time</th>
+              <th data-i18n="th.pickup">Pickup</th><th data-i18n="th.dropoff">Dropoff</th><th data-i18n="th.amount">Amount</th><th data-i18n="th.payment">Payment</th><th data-i18n="th.status">Status</th><th data-i18n="form.actions">Action</th>
             </tr>
           </thead>
           <tbody id="bookings-tbody"></tbody>
@@ -810,19 +826,19 @@
     <!-- CUSTOMERS PAGE -->
     <div class="page" id="page-customers">
       <div class="section-header">
-        <div class="section-title">Customers</div>
+        <div class="section-title" data-i18n="page.customers">Customers</div>
         <div class="flex gap-8">
           <div class="search-bar">
             <span class="icon">🔍</span>
-            <input type="text" placeholder="Search customers..." id="customer-search" oninput="filterCustomers()">
+            <input type="text" data-i18n-placeholder="search.customers" placeholder="Search customers..." id="customer-search" oninput="filterCustomers()">
           </div>
-          <button class="btn btn-primary" onclick="openCustomerModal()">+ Add Customer</button>
+          <button class="btn btn-primary" onclick="openCustomerModal()" data-i18n="btn.addCustomer">+ Add Customer</button>
         </div>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Name</th><th>Phone</th><th>Email</th><th>Total Bookings</th><th>Total Spent</th><th>Last Booking</th><th>Action</th></tr>
+            <tr><th data-i18n="th.name">Name</th><th data-i18n="th.phone">Phone</th><th data-i18n="form.email">Email</th><th data-i18n="th.totalBookings">Total Bookings</th><th data-i18n="th.totalSpent">Total Spent</th><th data-i18n="th.lastBooking">Last Booking</th><th data-i18n="form.actions">Action</th></tr>
           </thead>
           <tbody id="customers-tbody"></tbody>
         </table>
@@ -832,8 +848,8 @@
     <!-- DRIVERS PAGE -->
     <div class="page" id="page-drivers">
       <div class="section-header">
-        <div class="section-title">Drivers</div>
-        <button class="btn btn-primary" onclick="openDriverModal()">+ Add Driver</button>
+        <div class="section-title" data-i18n="page.drivers">Drivers</div>
+        <button class="btn btn-primary" onclick="openDriverModal()" data-i18n="btn.addDriver">+ Add Driver</button>
       </div>
       <div class="grid-3" id="drivers-grid"></div>
     </div>
@@ -841,8 +857,8 @@
     <!-- VEHICLES PAGE -->
     <div class="page" id="page-vehicles">
       <div class="section-header">
-        <div class="section-title">Vehicles</div>
-        <button class="btn btn-primary" onclick="openVehicleModal()">+ Add Vehicle</button>
+        <div class="section-title" data-i18n="page.vehicles">Vehicles</div>
+        <button class="btn btn-primary" onclick="openVehicleModal()" data-i18n="btn.addVehicle">+ Add Vehicle</button>
       </div>
       <div class="grid-3" id="vehicles-grid"></div>
     </div>
@@ -850,36 +866,36 @@
     <!-- INCOME PAGE -->
     <div class="page" id="page-income">
       <div class="section-header">
-        <div class="section-title">Income Records</div>
+        <div class="section-title" data-i18n="page.income">Income Records</div>
         <div class="flex gap-8">
           <select class="form-control" style="width:140px" id="income-type-filter" onchange="filterIncome()">
-            <option value="">All Types</option>
+            <option value="" data-i18n="allTypes">All Types</option>
           </select>
-          <button class="btn btn-primary" onclick="openIncomeModal()">+ Add Income</button>
+          <button class="btn btn-primary" onclick="openIncomeModal()" data-i18n="btn.addIncome">+ Add Income</button>
         </div>
       </div>
       <div class="card card-sm mb-16">
-        <div class="text-sm font-bold mb-8">Quick Record — Platform Income</div>
+        <div class="text-sm font-bold mb-8" data-i18n="toolbar.quickRecord">Quick Record — Platform Income</div>
         <div class="income-source-grid" id="income-quick-sources"></div>
       </div>
       <div class="grid-3 mb-16">
         <div class="stat-card green">
-          <div class="stat-label">This Month Income</div>
+          <div class="stat-label" data-i18n="stat.thisMonthIncome">This Month Income</div>
           <div class="stat-value green" id="income-month-total" data-countup-prefix="RM " data-countup-decimals="2">RM 0.00</div>
         </div>
         <div class="stat-card blue">
-          <div class="stat-label">Total Records</div>
+          <div class="stat-label" data-i18n="stat.totalRecords">Total Records</div>
           <div class="stat-value blue" id="income-total-records" data-countup="0">0</div>
         </div>
         <div class="stat-card yellow">
-          <div class="stat-label">Average Per Trip</div>
+          <div class="stat-label" data-i18n="stat.avgPerTrip">Average Per Trip</div>
           <div class="stat-value yellow" id="income-avg" data-countup-prefix="RM " data-countup-decimals="2">RM 0.00</div>
         </div>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Date</th><th>Type</th><th>Description</th><th>Driver</th><th>Payment</th><th>Amount</th><th>Actions</th></tr>
+            <tr><th data-i18n="form.date">Date</th><th data-i18n="th.type">Type</th><th data-i18n="th.description">Description</th><th data-i18n="th.driver">Driver</th><th data-i18n="th.payment">Payment</th><th data-i18n="th.amount">Amount</th><th data-i18n="form.actions">Actions</th></tr>
           </thead>
           <tbody id="income-tbody"></tbody>
         </table>
@@ -889,36 +905,36 @@
     <!-- EXPENSES PAGE -->
     <div class="page" id="page-expenses">
       <div class="section-header">
-        <div class="section-title">Expense Records</div>
+        <div class="section-title" data-i18n="page.expenses">Expense Records</div>
         <div class="flex gap-8">
           <select class="form-control" style="width:140px" id="expense-type-filter" onchange="filterExpenses()">
-            <option value="">All Types</option>
+            <option value="" data-i18n="allTypes">All Types</option>
             <option>Fuel</option><option>Parking</option><option>Toll</option><option>Repair</option>
             <option>Maintenance</option><option>Tyres</option><option>Battery</option><option>Engine Oil</option>
             <option>Insurance</option><option>Road Tax</option><option>Car Wash</option>
             <option>Food</option><option>Accommodation</option><option>Commission</option><option>Others</option>
           </select>
-          <button class="btn btn-primary" onclick="openExpenseModal()">+ Add Expense</button>
+          <button class="btn btn-primary" onclick="openExpenseModal()" data-i18n="btn.addExpense">+ Add Expense</button>
         </div>
       </div>
       <div class="grid-3 mb-16">
         <div class="stat-card red">
-          <div class="stat-label">This Month Expenses</div>
+          <div class="stat-label" data-i18n="stat.thisMonthExpenses">This Month Expenses</div>
           <div class="stat-value red" id="expense-month-total" data-countup-prefix="RM " data-countup-decimals="2">RM 0.00</div>
         </div>
         <div class="stat-card yellow">
-          <div class="stat-label">Total Records</div>
+          <div class="stat-label" data-i18n="stat.totalRecords">Total Records</div>
           <div class="stat-value yellow" id="expense-total-records" data-countup="0">0</div>
         </div>
         <div class="stat-card purple">
-          <div class="stat-label">Largest Expense</div>
+          <div class="stat-label" data-i18n="stat.largestExpense">Largest Expense</div>
           <div class="stat-value purple" id="expense-largest" data-countup-prefix="RM " data-countup-decimals="2">RM 0.00</div>
         </div>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Date</th><th>Category</th><th>Description</th><th>Vehicle</th><th>Receipt</th><th>Amount</th><th>Actions</th></tr>
+            <tr><th data-i18n="form.date">Date</th><th data-i18n="th.category">Category</th><th data-i18n="th.description">Description</th><th data-i18n="th.vehicle">Vehicle</th><th data-i18n="th.receipt">Receipt</th><th data-i18n="th.amount">Amount</th><th data-i18n="form.actions">Actions</th></tr>
           </thead>
           <tbody id="expenses-tbody"></tbody>
         </table>
@@ -928,8 +944,8 @@
     <!-- DAILY CLOSING PAGE -->
     <div class="page" id="page-closing">
       <div class="mb-16">
-        <div class="section-title mb-4">Daily Closing</div>
-        <div class="text-sm text-muted">Summarize today's business performance</div>
+        <div class="section-title mb-4" data-i18n="page.closing">Daily Closing</div>
+        <div class="text-sm text-muted" data-i18n="closing.sub">Summarize today's business performance</div>
       </div>
 
       <div class="grid-2 mb-16">
@@ -937,7 +953,7 @@
           <div class="flex-center gap-8 mb-16">
             <span style="font-size:22px">💰</span>
             <div>
-              <div class="text-sm text-muted">Total Income Today</div>
+              <div class="text-sm text-muted" data-i18n="closing.incomeToday">Total Income Today</div>
               <div style="font-size:26px;font-weight:800;color:var(--green)" id="close-income">RM 0</div>
             </div>
           </div>
@@ -947,7 +963,7 @@
           <div class="flex-center gap-8 mb-16">
             <span style="font-size:22px">💸</span>
             <div>
-              <div class="text-sm text-muted">Total Expenses Today</div>
+              <div class="text-sm text-muted" data-i18n="closing.expensesToday">Total Expenses Today</div>
               <div style="font-size:26px;font-weight:800;color:var(--red)" id="close-expenses">RM 0</div>
             </div>
           </div>
@@ -958,7 +974,7 @@
       <div class="card mb-16" style="border-color:rgba(79,110,247,0.4)">
         <div class="flex-center" style="justify-content:space-between">
           <div>
-            <div class="text-muted text-sm">Net Profit / Loss Today</div>
+            <div class="text-muted text-sm" data-i18n="closing.netProfit">Net Profit / Loss Today</div>
             <div style="font-size:32px;font-weight:900;letter-spacing:-1px" id="close-profit">RM 0</div>
           </div>
           <div id="close-profit-pill"></div>
@@ -967,40 +983,40 @@
 
       <div class="grid-3 mb-16">
         <div class="card card-sm">
-          <div class="text-xs text-dim mb-4">Completed Trips</div>
+          <div class="text-xs text-dim mb-4" data-i18n="closing.completedTrips">Completed Trips</div>
           <div class="font-bold" style="font-size:20px" id="close-trips">0</div>
         </div>
         <div class="card card-sm">
-          <div class="text-xs text-dim mb-4">Outstanding Balance</div>
+          <div class="text-xs text-dim mb-4" data-i18n="closing.outstandingBalance">Outstanding Balance</div>
           <div class="font-bold red" style="font-size:20px" id="close-outstanding">RM 0</div>
         </div>
         <div class="card card-sm">
-          <div class="text-xs text-dim mb-4">New Customers</div>
+          <div class="text-xs text-dim mb-4" data-i18n="closing.newCustomers">New Customers</div>
           <div class="font-bold" style="font-size:20px" id="close-newcust">0</div>
         </div>
       </div>
 
       <div class="card mb-16">
-        <div class="section-title mb-8">Closing Notes</div>
-        <textarea class="form-control" placeholder="Add notes for today..." id="close-notes" rows="3"></textarea>
+        <div class="section-title mb-8" data-i18n="closing.notes">Closing Notes</div>
+        <textarea class="form-control" data-i18n-placeholder="closing.notesPh" placeholder="Add notes for today..." id="close-notes" rows="3"></textarea>
       </div>
-      <button class="btn btn-primary" onclick="saveClosing()">✓ Save Daily Closing Report</button>
+      <button class="btn btn-primary" onclick="saveClosing()" data-i18n="closing.saveReport">✓ Save Daily Closing Report</button>
     </div>
 
     <!-- REPORTS PAGE -->
     <div class="page" id="page-reports">
       <div class="tabs" id="report-tabs">
-        <div class="tab active" onclick="switchReportTab('summary')">Summary</div>
-        <div class="tab" onclick="switchReportTab('income')">Income</div>
-        <div class="tab" onclick="switchReportTab('expense')">Expenses</div>
-        <div class="tab" onclick="switchReportTab('booking')">Bookings</div>
+        <div class="tab active" onclick="switchReportTab('summary')" data-i18n="reports.summary">Summary</div>
+        <div class="tab" onclick="switchReportTab('income')" data-i18n="reports.income">Income</div>
+        <div class="tab" onclick="switchReportTab('expense')" data-i18n="reports.expense">Expenses</div>
+        <div class="tab" onclick="switchReportTab('booking')" data-i18n="reports.booking">Bookings</div>
       </div>
       <div id="report-content"></div>
     </div>
 
     <!-- NOTIFICATIONS PAGE -->
     <div class="page" id="page-notifications">
-      <div class="section-title mb-16">Notifications & Alerts</div>
+      <div class="section-title mb-16" data-i18n="page.notifications">Notifications & Alerts</div>
       <div id="notifications-list"></div>
     </div>
 
@@ -1009,13 +1025,13 @@
     <div class="page" id="page-mytrips">
       <div class="section-header">
         <div>
-          <div class="section-title">My Assigned Trips</div>
-          <div class="text-sm text-muted mt-4">Trips assigned to you — tap to view full details</div>
+          <div class="section-title" data-i18n="page.mytrips">My Assigned Trips</div>
+          <div class="text-sm text-muted mt-4" data-i18n="mytrips.sub">Trips assigned to you — tap to view full details</div>
         </div>
       </div>
       <div class="flex gap-8 mb-16" style="flex-wrap:wrap">
         <select class="form-control" style="width:160px" id="mytrips-filter" onchange="renderMyTrips()">
-          <option value="">All Status</option>
+          <option value="" data-i18n="allStatus">All Status</option>
           <option>Assigned</option><option>Driver On The Way</option><option>Passenger Picked Up</option>
           <option>Completed</option><option>Confirmed</option>
         </select>
@@ -1023,105 +1039,132 @@
       <div id="mytrips-list"></div>
     </div>
 
+    <!-- ROGER PAGE (team handoff) -->
+    <div class="page" id="page-roger">
+      <div class="section-header">
+        <div>
+          <div class="section-title" data-i18n="page.roger">Roger — Team Handoff</div>
+          <div class="text-sm text-muted mt-4" data-i18n="roger.sub">Trip full? Open Roger and let teammates pick up the job.</div>
+        </div>
+      </div>
+      <div class="roger-tabs" id="roger-tabs">
+        <button type="button" class="roger-tab active" data-tab="open" onclick="switchRogerTab('open')" data-i18n="roger.tabOpen">Open Requests</button>
+        <button type="button" class="roger-tab" data-tab="active" onclick="switchRogerTab('active')" data-i18n="roger.tabActive">My Active</button>
+        <button type="button" class="roger-tab" data-tab="history" onclick="switchRogerTab('history')" data-i18n="roger.tabHistory">History</button>
+      </div>
+      <div id="roger-list"></div>
+    </div>
+
     <!-- SETTINGS PAGE -->
     <div class="page" id="page-settings">
-      <div class="section-title mb-16">Settings</div>
+      <div class="section-title mb-16" data-i18n="page.settings">Settings</div>
       <div class="grid-2">
         <div class="card">
-          <div class="section-title mb-16">Business Profile</div>
+          <div class="section-title mb-16" data-i18n="settings.bizProfile">Business Profile</div>
           <div class="form-group">
-            <label class="form-label">Business Name</label>
+            <label class="form-label" data-i18n="settings.businessName">Business Name</label>
             <input class="form-control" value="AppleRider Transport" id="setting-biz-name">
           </div>
           <div class="form-group">
-            <label class="form-label">Owner Name</label>
+            <label class="form-label" data-i18n="settings.ownerName">Owner Name</label>
             <input class="form-control" value="Ahmad Hafiz" id="setting-owner">
           </div>
           <div class="form-group">
-            <label class="form-label">Phone</label>
+            <label class="form-label" data-i18n="settings.phone">Phone</label>
             <input class="form-control" value="+60 12-345 6789" id="setting-phone">
           </div>
           <div class="form-group">
-            <label class="form-label">Email</label>
+            <label class="form-label" data-i18n="settings.emailLabel">Email</label>
             <input class="form-control" value="ahmad@transport.my" id="setting-email">
           </div>
           <div class="form-group">
-            <label class="form-label">Currency</label>
+            <label class="form-label" data-i18n="settings.bizRegId">Business Registration No.</label>
+            <input class="form-control" id="setting-biz-reg" data-i18n-placeholder="settings.bizRegIdPh" placeholder="e.g. 202301012345 (1234567-A)">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="settings.currency">Currency</label>
             <select class="form-control" id="setting-currency">
               <option selected>MYR (RM)</option><option>SGD ($)</option><option>USD ($)</option>
             </select>
           </div>
-          <button class="btn btn-primary" onclick="saveBizSettings()">Save Profile</button>
+          <button class="btn btn-primary" onclick="saveBizSettings()" data-i18n="settings.saveProfile">Save Profile</button>
         </div>
         <div class="card">
-          <div class="section-title mb-16">Booking Types</div>
-          <div class="text-sm text-muted mb-8">Manage booking types available when creating bookings</div>
+          <div class="section-title mb-16" data-i18n="settings.bookingTypes">Booking Types</div>
+          <div class="text-sm text-muted mb-8" data-i18n="settings.bookingTypesSub">Manage booking types available when creating bookings</div>
           <div class="type-tags" id="settings-booking-types"></div>
           <div class="type-add-row">
             <input class="form-control" id="new-booking-type" placeholder="New booking type..." onkeydown="if(event.key==='Enter')addBookingType()">
-            <button class="btn btn-primary btn-sm" onclick="addBookingType()">Add</button>
+            <button class="btn btn-primary btn-sm" onclick="addBookingType()" data-i18n="btn.add">Add</button>
           </div>
         </div>
         <div class="card">
-          <div class="section-title mb-16">Income Sources</div>
-          <div class="text-sm text-muted mb-8">Platforms & income categories (Grab, inDrive, etc.)</div>
+          <div class="section-title mb-16" data-i18n="settings.incomeSources">Income Sources</div>
+          <div class="text-sm text-muted mb-8" data-i18n="settings.incomeTypesSub">Platforms & income categories (Grab, inDrive, etc.)</div>
           <div class="type-tags" id="settings-income-types"></div>
           <div class="type-add-row">
             <input class="form-control" id="new-income-type" placeholder="New income source..." onkeydown="if(event.key==='Enter')addIncomeType()">
-            <button class="btn btn-primary btn-sm" onclick="addIncomeType()">Add</button>
+            <button class="btn btn-primary btn-sm" onclick="addIncomeType()" data-i18n="btn.add">Add</button>
           </div>
         </div>
         <div class="card">
-          <div class="section-title mb-16">Firebase Connection</div>
+          <div class="section-title mb-16" data-i18n="settings.firebase">Firebase Connection</div>
           <div id="firebase-settings-status">
             <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value text-muted">Checking...</div></div>
           </div>
           <hr class="divider">
-          <div class="text-sm text-muted mb-8">Security rules files in project folder:</div>
+          <div class="text-sm text-muted mb-8" data-i18n="settings.rulesHint">Security rules files in project folder:</div>
           <div class="text-xs text-dim" style="line-height:1.8">
             <code>firestore.rules</code> · <code>storage.rules</code> · <code>firebase.json</code>
           </div>
-          <button class="btn btn-ghost btn-sm mt-8" onclick="checkFirebaseConnection()">↻ Test Connection</button>
+          <button class="btn btn-ghost btn-sm mt-8" onclick="checkFirebaseConnection()" data-i18n="settings.testConnection">↻ Test Connection</button>
         </div>
         <div class="card">
-          <div class="section-title mb-16">Appearance & UX</div>
+          <div class="section-title mb-16" data-i18n="settings.appearance">Appearance & UX</div>
           <div class="setting-row">
-            <div><div class="text-sm font-bold">Dark Mode</div><div class="text-xs text-muted">Switch to dark theme</div></div>
+            <div><div class="text-sm font-bold" data-i18n="settings.language">Language</div><div class="text-xs text-muted" data-i18n="settings.languageSub">English / 中文</div></div>
+            <select class="form-control" style="width:120px" id="setting-language" onchange="setLang(this.value)">
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <div><div class="text-sm font-bold" data-i18n="settings.darkMode">Dark Mode</div><div class="text-xs text-muted" data-i18n="settings.darkModeSub">Switch to dark theme</div></div>
             <label class="toggle-switch"><input type="checkbox" id="setting-dark-mode" onchange="setTheme(this.checked?'dark':'light')"><span class="toggle-slider"></span></label>
           </div>
           <div class="setting-row">
-            <div><div class="text-sm font-bold">Sound Effects</div><div class="text-xs text-muted">Success sound on actions</div></div>
+            <div><div class="text-sm font-bold" data-i18n="settings.soundEffects">Sound Effects</div><div class="text-xs text-muted" data-i18n="settings.soundEffectsSub">Success sound on actions</div></div>
             <label class="toggle-switch"><input type="checkbox" id="setting-sound" onchange="appSettings.soundEnabled=this.checked;saveAppSettings()"><span class="toggle-slider"></span></label>
           </div>
           <div class="setting-row">
-            <div><div class="text-sm font-bold">Celebration Confetti</div><div class="text-xs text-muted">On daily closing save</div></div>
+            <div><div class="text-sm font-bold" data-i18n="settings.confetti">Celebration Confetti</div><div class="text-xs text-muted" data-i18n="settings.confettiSub">On daily closing save</div></div>
             <label class="toggle-switch"><input type="checkbox" id="setting-confetti" checked onchange="appSettings.confettiEnabled=this.checked;saveAppSettings()"><span class="toggle-slider"></span></label>
           </div>
         </div>
         <div class="card">
-          <div class="section-title mb-16">Notification Settings</div>
+          <div class="section-title mb-16" data-i18n="settings.notifications">Notification Settings</div>
           <div style="display:flex;flex-direction:column;gap:12px">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
-              <input type="checkbox" checked> <span class="text-sm">New booking alerts</span>
+              <input type="checkbox" checked> <span class="text-sm" data-i18n="settings.notifNewBooking">New booking alerts</span>
             </label>
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
-              <input type="checkbox" checked> <span class="text-sm">Payment reminders</span>
+              <input type="checkbox" checked> <span class="text-sm" data-i18n="settings.notifPayment">Payment reminders</span>
             </label>
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
-              <input type="checkbox" checked> <span class="text-sm">Vehicle maintenance due</span>
+              <input type="checkbox" checked> <span class="text-sm" data-i18n="settings.notifMaintenance">Vehicle maintenance due</span>
             </label>
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
-              <input type="checkbox"> <span class="text-sm">Daily closing reminder</span>
+              <input type="checkbox"> <span class="text-sm" data-i18n="settings.notifClosing">Daily closing reminder</span>
             </label>
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
-              <input type="checkbox" checked> <span class="text-sm">Outstanding balance alerts</span>
+              <input type="checkbox" checked> <span class="text-sm" data-i18n="settings.notifOutstanding">Outstanding balance alerts</span>
             </label>
           </div>
           <hr class="divider">
-          <div class="section-title mb-8">Data</div>
+          <div class="section-title mb-8" data-i18n="settings.data">Data</div>
           <div style="display:flex;flex-direction:column;gap:8px">
-            <button class="btn btn-ghost" onclick="exportData()">📤 Export All Data (JSON)</button>
-            <button class="btn btn-danger" onclick="if(confirm('Clear all demo data?'))clearData()">🗑 Clear Demo Data</button>
+            <button class="btn btn-ghost" onclick="exportData()" data-i18n="settings.exportAll">📤 Export All Data (JSON)</button>
+            <button class="btn btn-danger" onclick="if(confirm(t('toast.clearDemoConfirm')))clearData()" data-i18n="settings.clearDemo">🗑 Clear Demo Data</button>
           </div>
         </div>
       </div>
@@ -1135,69 +1178,69 @@
 <div class="modal-overlay" id="modal-booking">
   <div class="modal modal-lg">
     <div class="modal-header">
-      <div class="modal-title" id="booking-modal-title">New Booking</div>
+      <div class="modal-title" id="booking-modal-title" data-i18n="modal.newBooking">New Booking</div>
       <button class="modal-close" onclick="closeModal('modal-booking')">×</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-booking-id">
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Customer *</label>
+          <label class="form-label" data-i18n="form.customerReq">Customer *</label>
           <select class="form-control" id="b-customer">
-            <option value="">Select Customer</option>
+            <option value="" data-i18n="form.selectCustomer">Select Customer</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Booking Type *</label>
+          <label class="form-label" data-i18n="form.bookingTypeReq">Booking Type *</label>
           <select class="form-control" id="b-type" onchange="toggleCustomBookingType()">
           </select>
           <div class="custom-type-row" id="b-type-custom-row">
-            <input class="form-control" id="b-type-custom" placeholder="Enter custom booking type">
+            <input class="form-control" id="b-type-custom" data-i18n-placeholder="form.customBookingType" placeholder="Enter custom booking type">
           </div>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Date *</label>
+          <label class="form-label" data-i18n="form.dateReq">Date *</label>
           <input type="date" class="form-control" id="b-date">
         </div>
         <div class="form-group">
-          <label class="form-label">Time *</label>
+          <label class="form-label" data-i18n="form.timeReq">Time *</label>
           <input type="time" class="form-control" id="b-time">
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Pickup Location *</label>
+        <label class="form-label" data-i18n="form.pickupReq">Pickup Location *</label>
         <input type="text" class="form-control" id="b-pickup" placeholder="e.g. KLIA Terminal 1">
       </div>
       <div class="form-group">
-        <label class="form-label">Dropoff Location *</label>
+        <label class="form-label" data-i18n="form.dropoffReq">Dropoff Location *</label>
         <input type="text" class="form-control" id="b-dropoff" placeholder="e.g. Pavilion KL">
       </div>
       <div class="form-row-3">
         <div class="form-group">
-          <label class="form-label">Total Amount (RM)</label>
+          <label class="form-label" data-i18n="form.totalAmount">Total Amount (RM)</label>
           <input type="number" class="form-control" id="b-amount" placeholder="0.00" oninput="calcBalance()">
         </div>
         <div class="form-group">
-          <label class="form-label">Deposit (RM)</label>
+          <label class="form-label" data-i18n="form.deposit">Deposit (RM)</label>
           <input type="number" class="form-control" id="b-deposit" placeholder="0.00" oninput="calcBalance()">
         </div>
         <div class="form-group">
-          <label class="form-label">Balance (RM)</label>
+          <label class="form-label" data-i18n="form.balance">Balance (RM)</label>
           <input type="number" class="form-control" id="b-balance" placeholder="0.00" readonly style="color:var(--yellow)">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Payment Method</label>
+          <label class="form-label" data-i18n="form.paymentMethod">Payment Method</label>
           <select class="form-control" id="b-payment-method">
             <option>Cash</option><option>Bank Transfer</option><option>QR Payment</option>
             <option>Credit Card</option><option>Online Payment</option><option>Company Credit</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Payment Status</label>
+          <label class="form-label" data-i18n="form.paymentStatus">Payment Status</label>
           <select class="form-control" id="b-payment-status">
             <option>Pending</option><option>Deposit Paid</option><option>Partial Paid</option>
             <option>Fully Paid</option><option>Cancelled</option><option>Refunded</option>
@@ -1206,20 +1249,20 @@
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Assign Driver</label>
+          <label class="form-label" data-i18n="form.assignDriver">Assign Driver</label>
           <select class="form-control" id="b-driver">
-            <option value="">— Not Assigned —</option>
+            <option value="" data-i18n="form.notAssigned">— Not Assigned —</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Vehicle</label>
+          <label class="form-label" data-i18n="form.vehicleLabel">Vehicle</label>
           <select class="form-control" id="b-vehicle">
-            <option value="">— Select Vehicle —</option>
+            <option value="" data-i18n="form.selectVehicle">— Select Vehicle —</option>
           </select>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Status</label>
+        <label class="form-label" data-i18n="form.statusLabel">Status</label>
         <select class="form-control" id="b-status">
           <option>New</option><option>Confirmed</option><option>Assigned</option>
           <option>Driver On The Way</option><option>Passenger Picked Up</option>
@@ -1227,13 +1270,13 @@
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Notes</label>
-        <textarea class="form-control" id="b-notes" placeholder="Flight number, special requests, etc."></textarea>
+        <label class="form-label" data-i18n="form.notesLabel">Notes</label>
+        <textarea class="form-control" id="b-notes" data-i18n-placeholder="form.notesPh" placeholder="Flight number, special requests, etc."></textarea>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-booking')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveBooking()">Save Booking</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-booking')" data-i18n="btn.cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBooking()" data-i18n="btn.saveBooking">Save Booking</button>
     </div>
   </div>
 </div>
@@ -1242,21 +1285,21 @@
 <div class="modal-overlay" id="modal-customer">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title" id="customer-modal-title">New Customer</div>
+      <div class="modal-title" id="customer-modal-title" data-i18n="modal.newCustomer">New Customer</div>
       <button class="modal-close" onclick="closeModal('modal-customer')">×</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-customer-id">
-      <div class="form-group"><label class="form-label">Full Name *</label><input class="form-control" id="c-name" placeholder="e.g. Lim Wei Kiat"></div>
+      <div class="form-group"><label class="form-label" data-i18n="form.nameReq">Full Name *</label><input class="form-control" id="c-name" placeholder="e.g. Lim Wei Kiat"></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Phone *</label><input class="form-control" id="c-phone" placeholder="+60 12-345 6789"></div>
-        <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="c-email" placeholder="email@example.com"></div>
+        <div class="form-group"><label class="form-label" data-i18n="form.phoneReq">Phone *</label><input class="form-control" id="c-phone" placeholder="+60 12-345 6789"></div>
+        <div class="form-group"><label class="form-label" data-i18n="form.email">Email</label><input class="form-control" id="c-email" placeholder="email@example.com"></div>
       </div>
-      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-control" id="c-notes" placeholder="Preferences, important info..."></textarea></div>
+      <div class="form-group"><label class="form-label" data-i18n="form.notesLabel">Notes</label><textarea class="form-control" id="c-notes" placeholder="Preferences, important info..."></textarea></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-customer')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-customer')" data-i18n="btn.cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer()" data-i18n="btn.saveCustomer">Save Customer</button>
     </div>
   </div>
 </div>
@@ -1265,30 +1308,30 @@
 <div class="modal-overlay" id="modal-driver">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Add Driver</div>
+      <div class="modal-title" data-i18n="modal.addDriver">Add Driver</div>
       <button class="modal-close" onclick="closeModal('modal-driver')">×</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-driver-id">
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Full Name *</label><input class="form-control" id="d-name"></div>
-        <div class="form-group"><label class="form-label">Phone *</label><input class="form-control" id="d-phone"></div>
+        <div class="form-group"><label class="form-label" data-i18n="form.nameReq">Full Name *</label><input class="form-control" id="d-name"></div>
+        <div class="form-group"><label class="form-label" data-i18n="form.phoneReq">Phone *</label><input class="form-control" id="d-phone"></div>
       </div>
-      <div class="form-group"><label class="form-label">Login Email <span class="text-dim">(for driver portal access)</span></label><input class="form-control" id="d-email" type="email" placeholder="driver@email.com"></div>
+      <div class="form-group"><label class="form-label"><span data-i18n="form.loginEmail">Login Email</span> <span class="text-dim">(for driver portal access)</span></label><input class="form-control" id="d-email" type="email" placeholder="driver@email.com"></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">License No.</label><input class="form-control" id="d-license"></div>
-        <div class="form-group"><label class="form-label">Status</label>
+        <div class="form-group"><label class="form-label" data-i18n="form.license">License No.</label><input class="form-control" id="d-license"></div>
+        <div class="form-group"><label class="form-label" data-i18n="form.statusLabel">Status</label>
           <select class="form-control" id="d-status">
             <option>Available</option><option>Busy</option><option>Driving</option>
             <option>Resting</option><option>Off Duty</option><option>Leave</option><option>Emergency</option>
           </select>
         </div>
       </div>
-      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-control" id="d-notes"></textarea></div>
+      <div class="form-group"><label class="form-label" data-i18n="form.notesLabel">Notes</label><textarea class="form-control" id="d-notes"></textarea></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-driver')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveDriver()">Save Driver</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-driver')" data-i18n="btn.cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDriver()" data-i18n="btn.saveDriver">Save Driver</button>
     </div>
   </div>
 </div>
@@ -1297,33 +1340,33 @@
 <div class="modal-overlay" id="modal-vehicle">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Add Vehicle</div>
+      <div class="modal-title" data-i18n="modal.addVehicle">Add Vehicle</div>
       <button class="modal-close" onclick="closeModal('modal-vehicle')">×</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-vehicle-id">
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Plate Number *</label><input class="form-control" id="v-plate" placeholder="e.g. WXY 1234" style="text-transform:uppercase"></div>
-        <div class="form-group"><label class="form-label">Model *</label><input class="form-control" id="v-model" placeholder="e.g. Toyota Vios"></div>
+        <div class="form-group"><label class="form-label" data-i18n="form.plateReq">Plate Number *</label><input class="form-control" id="v-plate" placeholder="e.g. WXY 1234" style="text-transform:uppercase"></div>
+        <div class="form-group"><label class="form-label" data-i18n="form.modelReq">Model *</label><input class="form-control" id="v-model" placeholder="e.g. Toyota Vios"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Year</label><input type="number" class="form-control" id="v-year" placeholder="2022"></div>
-        <div class="form-group"><label class="form-label">Color</label><input class="form-control" id="v-color" placeholder="Silver"></div>
+        <div class="form-group"><label class="form-label" data-i18n="th.year">Year</label><input type="number" class="form-control" id="v-year" placeholder="2022"></div>
+        <div class="form-group"><label class="form-label" data-i18n="th.color">Color</label><input class="form-control" id="v-color" placeholder="Silver"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Status</label>
+        <div class="form-group"><label class="form-label" data-i18n="form.statusLabel">Status</label>
           <select class="form-control" id="v-status">
             <option>Available</option><option>On Trip</option><option>Maintenance</option>
             <option>Repair</option><option>Inactive</option>
           </select>
         </div>
-        <div class="form-group"><label class="form-label">Road Tax Expiry</label><input type="date" class="form-control" id="v-roadtax"></div>
+        <div class="form-group"><label class="form-label" data-i18n="th.roadTax">Road Tax Expiry</label><input type="date" class="form-control" id="v-roadtax"></div>
       </div>
-      <div class="form-group"><label class="form-label">Insurance Expiry</label><input type="date" class="form-control" id="v-insurance"></div>
+      <div class="form-group"><label class="form-label" data-i18n="th.insurance">Insurance Expiry</label><input type="date" class="form-control" id="v-insurance"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-vehicle')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveVehicle()">Save Vehicle</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-vehicle')" data-i18n="btn.cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="saveVehicle()" data-i18n="btn.saveVehicle">Save Vehicle</button>
     </div>
   </div>
 </div>
@@ -1332,27 +1375,27 @@
 <div class="modal-overlay" id="modal-income">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title" id="income-modal-title">Add Income</div>
+      <div class="modal-title" id="income-modal-title" data-i18n="modal.addIncome">Add Income</div>
       <button class="modal-close" onclick="closeModal('modal-income')">×</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-income-id">
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Date *</label><input type="date" class="form-control" id="i-date"></div>
-        <div class="form-group"><label class="form-label">Type *</label>
+        <div class="form-group"><label class="form-label" data-i18n="form.dateReq">Date *</label><input type="date" class="form-control" id="i-date"></div>
+        <div class="form-group"><label class="form-label" data-i18n="form.typeReq">Type *</label>
           <select class="form-control" id="i-type" onchange="toggleCustomIncomeType()">
           </select>
           <div class="custom-type-row" id="i-type-custom-row">
-            <input class="form-control" id="i-type-custom" placeholder="Enter custom income type">
+            <input class="form-control" id="i-type-custom" data-i18n-placeholder="form.customIncomeType" placeholder="Enter custom income type">
           </div>
         </div>
       </div>
-      <div class="form-group"><label class="form-label">Description</label><input class="form-control" id="i-desc" placeholder="e.g. KLIA to Pavilion"></div>
+      <div class="form-group"><label class="form-label" data-i18n="th.description">Description</label><input class="form-control" id="i-desc" data-i18n-placeholder="form.incomeDescPh" placeholder="e.g. KLIA to Pavilion"></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Driver</label>
-          <select class="form-control" id="i-driver"><option value="">Select Driver</option></select>
+        <div class="form-group"><label class="form-label" data-i18n="th.driver">Driver</label>
+          <select class="form-control" id="i-driver"><option value="" data-i18n="form.selectDriver">Select Driver</option></select>
         </div>
-        <div class="form-group"><label class="form-label">Payment Method</label>
+        <div class="form-group"><label class="form-label" data-i18n="form.paymentMethod">Payment Method</label>
           <select class="form-control" id="i-payment">
             <option>Cash</option><option>Bank Transfer</option><option>QR Payment</option>
             <option>Credit Card</option><option>Online Payment</option>
@@ -1420,24 +1463,36 @@
   </div>
 </div>
 
+<!-- ROGER TRIP MODAL -->
+<div class="modal-overlay" id="modal-roger-trip">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" data-i18n="roger.tripTitle">Roger Trip</div>
+      <button class="modal-close" onclick="closeModal('modal-roger-trip')">×</button>
+    </div>
+    <div class="modal-body" id="roger-trip-content"></div>
+    <div class="modal-footer" id="roger-trip-footer"></div>
+  </div>
+</div>
+
 
 <!-- LOGIN OVERLAY -->
 <div id="login-overlay" style="display:flex;position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#1e2560 0%,#3d4db7 50%,#0d1240 100%);align-items:center;justify-content:center;padding:20px;">
   <div class="login-card">
     <div class="login-logo-wrap"><img id="login-logo" class="login-logo" alt="AppleRider"></div>
-    <div class="login-title">AppleRider</div>
-    <div class="login-sub">Transport Management System</div>
+    <div class="login-title" data-i18n="login.title">AppleRider</div>
+    <div class="login-sub" data-i18n="login.sub">Transport Management System</div>
     <div class="login-field" style="margin-bottom:14px;">
-      <label>Email</label>
+      <label data-i18n="form.email">Email</label>
       <input id="login-email" type="email" placeholder="admin@applerider.com" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <div class="login-field" style="margin-bottom:16px;">
-      <label>Password</label>
+      <label data-i18n="form.password">Password</label>
       <input id="login-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <div id="login-error" style="color:#dc2626;font-size:12px;margin-bottom:12px;min-height:16px;"></div>
-    <button id="login-btn" class="login-btn" onclick="doLogin()">Login</button>
-    <div style="text-align:center;margin-top:18px;font-size:11px;color:#8b90b8;">AppleRider V1.0 · Secure Login</div>
+    <button id="login-btn" class="login-btn" onclick="doLogin()" data-i18n="btn.login">Login</button>
+    <div style="text-align:center;margin-top:18px;font-size:11px;color:#8b90b8;"><span data-i18n="login.secure">AppleRider V1.0 · Secure Login</span></div>
   </div>
 </div>
 
@@ -1447,11 +1502,12 @@
 <!-- MOBILE BOTTOM NAV -->
 <nav class="mobile-nav" id="mobile-nav">
   <div class="mobile-nav-inner">
-    <button class="mobile-nav-item active" data-page="dashboard" onclick="mobileNav('dashboard')"><span class="m-icon">🏠</span>Home</button>
-    <button class="mobile-nav-item admin-only" data-page="bookings" onclick="mobileNav('bookings')"><span class="m-icon">📋</span>Bookings</button>
-    <button class="mobile-nav-item driver-only" data-page="mytrips" onclick="mobileNav('mytrips')" style="display:none"><span class="m-icon">🚗</span>My Trips</button>
-    <button class="mobile-nav-item" data-page="income" onclick="mobileNav('income')"><span class="m-icon">💰</span>Income</button>
-    <button class="mobile-nav-item admin-only" data-page="calendar" onclick="mobileNav('calendar')"><span class="m-icon">📅</span>Calendar</button>
+    <button class="mobile-nav-item active" data-page="dashboard" onclick="mobileNav('dashboard')"><span class="m-icon">🏠</span><span data-i18n="mobile.home">Home</span></button>
+    <button class="mobile-nav-item admin-only" data-page="bookings" onclick="mobileNav('bookings')"><span class="m-icon">📋</span><span data-i18n="mobile.bookings">Bookings</span></button>
+    <button class="mobile-nav-item driver-only" data-page="mytrips" onclick="mobileNav('mytrips')" style="display:none"><span class="m-icon">🚗</span><span data-i18n="mobile.mytrips">My Trips</span></button>
+    <button class="mobile-nav-item" data-page="roger" onclick="mobileNav('roger')"><span class="m-icon">📻</span><span data-i18n="nav.roger">Roger</span></button>
+    <button class="mobile-nav-item" data-page="income" onclick="mobileNav('income')"><span class="m-icon">💰</span><span data-i18n="mobile.income">Income</span></button>
+    <button class="mobile-nav-item admin-only" data-page="calendar" onclick="mobileNav('calendar')"><span class="m-icon">📅</span><span data-i18n="mobile.calendar">Calendar</span></button>
   </div>
 </nav>
 
@@ -1460,7 +1516,7 @@
   <div class="cmd-palette">
     <div class="cmd-input-wrap">
       <span>⌘</span>
-      <input id="cmd-input" placeholder="Search pages, bookings, customers, actions..." autocomplete="off">
+      <input id="cmd-input" data-i18n-placeholder="cmd.searchPlaceholder" placeholder="Search pages, bookings, customers, actions..." autocomplete="off">
       <span class="cmd-item-kbd">ESC</span>
     </div>
     <div class="cmd-results" id="cmd-results"></div>
@@ -1470,6 +1526,8 @@
 
 <!-- TOAST -->
 <div id="toast"></div>
+<div id="receipt-print-root" style="position:fixed;left:-9999px;top:0;width:794px;background:#fff;color:#111;padding:32px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;z-index:-1"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script type="module">
 // ============================================================
@@ -1501,6 +1559,364 @@ let firebaseConnected = false;
 const DEFAULT_BOOKING_TYPES = ['Airport Transfer','Airport Pickup','Airport Drop-off','Private Charter','Hourly Charter','Corporate Booking','Hotel Transfer','Point to Point','Tour Service','VIP Booking','Event Transfer','Others'];
 const DEFAULT_INCOME_TYPES = ['Private Booking','Grab','inDrive','Maxim','AirAsia Ride','Lalamove','Referral','Corporate','Others'];
 
+// ============================================================
+// i18n — English / 中文
+// ============================================================
+let currentLang = localStorage.getItem('applerider-lang') || 'zh';
+
+const I18N = {
+  en: {
+    'nav.overview':'Overview','nav.operations':'Operations','nav.finance':'Finance','nav.insights':'Insights','nav.system':'System',
+    'nav.dashboard':'Dashboard','nav.calendar':'Calendar','nav.bookings':'Bookings','nav.mytrips':'My Trips','nav.customers':'Customers',
+    'nav.drivers':'Drivers','nav.vehicles':'Vehicles','nav.income':'Income','nav.expenses':'Expenses','nav.closing':'Daily Close',
+    'nav.reports':'Reports','nav.notifications':'Alerts','nav.settings':'Settings',
+    'page.dashboard':'Dashboard','page.calendar':'Calendar','page.bookings':'Bookings','page.customers':'Customers',
+    'page.drivers':'Drivers','page.vehicles':'Vehicles','page.income':'Income Records','page.expenses':'Expense Records',
+    'page.closing':'Daily Closing','page.reports':'Reports','page.notifications':'Notifications & Alerts','page.settings':'Settings','page.mytrips':'My Assigned Trips',
+    'stat.todayBookings':"Today's Bookings",'stat.todayIncome':"Today's Income",'stat.todayExpenses':"Today's Expenses",'stat.todayProfit':"Today's Profit",
+    'stat.thisMonthIncome':'This Month Income','stat.thisMonthExpenses':'This Month Expenses','stat.totalRecords':'Total Records',
+    'stat.avgPerTrip':'Average Per Trip','stat.largestExpense':'Largest Expense',
+    'stat.sub.activeTrips':'Active trips','stat.sub.collected':'Collected','stat.sub.recorded':'Recorded','stat.sub.netEarnings':'Net earnings',
+    'section.recentBookings':'Recent Bookings','section.driverStatus':'Driver Status','section.monthlyIncome':'Monthly Income',
+    'section.outstanding':'Outstanding Payments','section.quickActions':'Quick Actions',
+    'btn.viewAll':'View All','btn.newBooking':'+ New Booking','btn.recordExpense':'+ Record Expense','btn.addIncome':'+ Add Income',
+    'btn.dailyClose':'🔐 Daily Close','btn.login':'Login','btn.logout':'Logout','btn.save':'Save','btn.cancel':'Cancel',
+    'btn.edit':'Edit','btn.del':'Del','btn.add':'Add','btn.viewDetails':'View Details','btn.onTheWay':'On The Way',
+    'login.title':'AppleRider','login.sub':'Transport Management System','login.secure':'AppleRider V1.0 · Secure Login',
+    'form.email':'Email','form.password':'Password','form.date':'Date','form.actions':'Actions',
+    'mobile.home':'Home','mobile.bookings':'Bookings','mobile.mytrips':'My Trips','mobile.income':'Income','mobile.calendar':'Calendar',
+    'date.today':'Today','date.week':'This Week','date.month':'This Month','date.all':'All Time','date.from':'From','date.to':'To','date.label':'📅 Date',
+    'closing.sub':"Summarize today's business performance",'closing.incomeToday':'Total Income Today','closing.expensesToday':'Total Expenses Today',
+    'mytrips.sub':'Trips assigned to you — tap to view full details',
+    'settings.bizProfile':'Business Profile','settings.appearance':'Appearance & UX','settings.language':'Language',
+    'settings.languageSub':'English / 中文','settings.darkMode':'Dark Mode','settings.darkModeSub':'Switch to dark theme',
+    'ptr.pull':'↓ Pull to refresh','ptr.release':'↑ Release to refresh','ptr.loading':'Refreshing...',
+    'role.admin':'Admin','role.driver':'Driver','role.owner':'Owner',
+    'empty.noBookings':'No bookings yet','empty.noBookingsSub':'Create your first booking to get started.',
+    'empty.noIncome':'No income recorded','empty.noIncomeSub':'Tap a platform below or add income manually.',
+    'empty.noExpenses':'No expenses recorded','empty.noExpensesSub':'Track fuel, maintenance and other costs.',
+    'empty.noDrivers':'No drivers','empty.allClear':'All clear!','empty.noOutstanding':'No outstanding payments — great job! 🎉',
+    'empty.noTrips':'No trips assigned','empty.noTripsSub':'When admin assigns you a booking, it will appear here.',
+    'empty.profileNotLinked':'Profile not linked','empty.profileNotLinkedSub':'Ask admin to set your Login Email in driver settings.',
+    'toast.langChanged':'Language updated ✓','toast.loginFailed':'Login failed','toast.wrongCredentials':'Wrong email or password',
+    'toast.logoutConfirm':'Logout?','toast.dateAmountRequired':'Date and amount required','toast.incomeTypeRequired':'Please select or enter income type',
+    'toast.incomeRecorded':'Income recorded ✓','toast.incomeUpdated':'Income updated ✓','toast.expenseRecorded':'Expense recorded ✓',
+    'toast.deleteIncomeConfirm':'Delete this income record?','toast.deleteBookingConfirm':'Delete this booking permanently?',
+    'toast.accessDenied':'Access denied','toast.statusUpdated':'Status updated: {status}',
+    'toolbar.quickRecord':'Quick Record — Platform Income','toolbar.exportSnapshot':'↓ Export Snapshot',
+    'toolbar.json':'↓ JSON','toolbar.csv':'↓ CSV','toolbar.import':'↑ Import',
+    'cmd.searchPlaceholder':'Search pages, bookings, customers, actions...',
+    'fb.connecting':'● Connecting...','fb.connected':'● Firebase Connected','fb.error':'● Firebase Error',
+    'status.New':'New','status.Confirmed':'Confirmed','status.Assigned':'Assigned','status.DriverOnTheWay':'Driver On The Way',
+    'status.PassengerPickedUp':'Passenger Picked Up','status.Completed':'Completed','status.Cancelled':'Cancelled','status.NoShow':'No Show',
+    'driver.Available':'Available','driver.Busy':'Busy','driver.Driving':'Driving','driver.Resting':'Resting',
+    'driver.OffDuty':'Off Duty','driver.Leave':'Leave','driver.Emergency':'Emergency',
+    'pickup':'Pickup','dropoff':'Dropoff','customer':'Customer','balance':'Bal',
+    'allTypes':'All Types','allStatus':'All Status',
+    'reports.summary':'Summary','reports.income':'Income','reports.expense':'Expenses','reports.booking':'Bookings',
+    'loader.text':'Loading your workspace...',
+    'th.bookingId':'Booking ID','th.customer':'Customer','th.type':'Type','th.dateTime':'Date & Time',
+    'th.pickup':'Pickup','th.dropoff':'Dropoff','th.amount':'Amount','th.payment':'Payment','th.status':'Status',
+    'th.name':'Name','th.phone':'Phone','th.totalBookings':'Total Bookings','th.totalSpent':'Total Spent','th.lastBooking':'Last Booking',
+    'th.description':'Description','th.driver':'Driver','th.category':'Category','th.vehicle':'Vehicle','th.receipt':'Receipt',
+    'search.bookings':'Search bookings...','search.customers':'Search customers...',
+    'btn.addCustomer':'+ Add Customer','btn.addDriver':'+ Add Driver','btn.addVehicle':'+ Add Vehicle',
+    'btn.addExpense':'+ Add Expense','btn.newBookingShort':'+ Booking',
+    'btn.saveBooking':'Save Booking','btn.saveCustomer':'Save Customer','btn.saveDriver':'Save Driver',
+    'btn.saveVehicle':'Save Vehicle','btn.saveIncome':'Save Income','btn.saveExpense':'Save Expense',
+    'btn.signingIn':'Signing in...','btn.view':'View',
+    'form.dateReq':'Date *','form.typeReq':'Type *','form.amountReq':'Amount (RM) *','form.categoryReq':'Category *',
+    'form.paymentMethod':'Payment Method','form.selectDriver':'Select Driver','form.selectVehicle':'Select Vehicle',
+    'form.customIncomeType':'Enter custom income type','form.incomeDescPh':'e.g. KLIA to Pavilion',
+    'form.expenseDescPh':'Details about this expense','form.receiptOptional':'Receipt (optional)',
+    'modal.newBooking':'New Booking','modal.newCustomer':'New Customer','modal.addIncome':'Add Income',
+    'modal.recordExpense':'Record Expense','modal.addDriver':'Add Driver','modal.addVehicle':'Add Vehicle',
+    'modal.bookingDetails':'Booking Details','modal.editBooking':'Edit Booking','modal.editIncome':'Edit Income',
+    'settings.bookingTypes':'Booking Types','settings.incomeSources':'Income Sources','settings.firebase':'Firebase Connection',
+    'settings.notifications':'Notification Settings','settings.data':'Data',
+    'empty.noBookingsFound':'No bookings found','empty.adjustFilters':'Try adjusting your filters or create a new booking.',
+    'toast.plateModelRequired':'Plate and model required','toast.vehicleUpdated':'Vehicle updated ✓','toast.vehicleAdded':'Vehicle added ✓',
+    'closing.netProfit':'Net Profit / Loss Today','closing.completedTrips':'Completed Trips','closing.outstandingBalance':'Outstanding Balance',
+    'closing.newCustomers':'New Customers','closing.notes':'Closing Notes','closing.notesPh':'Add notes for today...','closing.saveReport':'✓ Save Daily Closing Report',
+    'form.customerReq':'Customer *','form.bookingTypeReq':'Booking Type *','form.timeReq':'Time *','form.pickupReq':'Pickup Location *',
+    'form.dropoffReq':'Dropoff Location *','form.totalAmount':'Total Amount (RM)','form.deposit':'Deposit (RM)','form.balance':'Balance (RM)',
+    'form.paymentStatus':'Payment Status','form.assignDriver':'Assign Driver','form.vehicleLabel':'Vehicle','form.statusLabel':'Status',
+    'form.notesLabel':'Notes','form.notesPh':'Flight number, special requests, etc.','form.nameReq':'Name *','form.phoneReq':'Phone *',
+    'form.plateReq':'Plate Number *','form.modelReq':'Model *','form.customBookingType':'Enter custom booking type','form.notAssigned':'— Not Assigned —',
+    'form.selectCustomer':'Select Customer','form.customType':'+ Custom Type...','form.loginEmail':'Login Email','form.license':'License No.',
+    'modal.editCustomer':'Edit Customer','modal.editExpense':'Edit Expense','modal.editDriver':'Edit Driver','modal.editVehicle':'Edit Vehicle',
+    'settings.businessName':'Business Name','settings.ownerName':'Owner Name','settings.phone':'Phone','settings.emailLabel':'Email',
+    'settings.bizRegId':'Business Registration No.','settings.bizRegIdPh':'e.g. 202301012345 (1234567-A)',
+    'settings.currency':'Currency','settings.saveProfile':'Save Profile','settings.bookingTypesSub':'Manage booking types available when creating bookings',
+    'settings.incomeTypesSub':'Platforms & income categories (Grab, inDrive, etc.)','settings.statusLabel':'Status','settings.checking':'Checking...',
+    'settings.testConnection':'↻ Test Connection','settings.rulesHint':'Security rules files in project folder:',
+    'settings.soundEffects':'Sound Effects','settings.soundEffectsSub':'Success sound on actions','settings.confetti':'Celebration Confetti',
+    'settings.confettiSub':'On daily closing save','settings.notifNewBooking':'New booking alerts','settings.notifPayment':'Payment reminders',
+    'settings.notifMaintenance':'Vehicle maintenance due','settings.notifClosing':'Daily closing reminder','settings.notifOutstanding':'Outstanding balance alerts',
+    'settings.exportAll':'📤 Export All Data (JSON)','settings.clearDemo':'🗑 Clear Demo Data',
+    'toast.signingIn':'Signing in...','toast.loginNoAccess':'Login OK but no admin access. Ask admin to add your email in Firebase → settings/access → admins',
+    'toast.fileTooLarge':'File too large (max 5MB)','toast.receiptUploaded':'Receipt uploaded ✓','toast.rulesBlocked':'Firebase rules blocked access — deploy firestore.rules',
+    'toast.saveFailed':'Save failed: {msg}','toast.nothingToExport':'Nothing to export','toast.dashboardExported':'Dashboard snapshot exported ✓',
+    'toast.reportExported':'Report exported ✓','toast.importFailed':'Import failed: {msg}','toast.refreshed':'Refreshed ✓',
+    'toast.fileProtocolWarn':'Please open http://localhost:8080 — file:// blocks Firebase login.',
+    'toast.accessSetupIssue':'Access setup issue — check Firebase settings/access','toast.fillRequired':'Please fill all required fields',
+    'toast.namePhoneRequired':'Name and phone are required','toast.namePhoneReq':'Name and phone required',
+    'toast.bookingDeleted':'Booking deleted','toast.incomeDeleted':'Income deleted','toast.expenseDeleted':'Expense deleted',
+    'toast.driverDeleted':'Driver deleted','toast.vehicleDeleted':'Vehicle deleted','toast.customerDeleted':'Customer deleted',
+    'toast.expenseUpdated':'Expense updated ✓','toast.dailyClosingSaved':'Daily closing saved ✓',
+    'toast.bookingTypeAdded':'Booking type added ✓','toast.bookingTypeRemoved':'Booking type removed','toast.incomeSourceAdded':'Income source added ✓',
+    'toast.incomeSourceRemoved':'Income source removed','toast.settingsSaved':'Settings saved ✓','toast.dataExported':'Data exported ✓',
+    'toast.deleteCustomerConfirm':'Delete this customer?','toast.deleteExpenseConfirm':'Delete this expense record?',
+    'toast.deleteDriverConfirm':'Delete this driver?','toast.deleteVehicleConfirm':'Delete this vehicle?',
+    'toast.removeBookingTypeConfirm':'Remove this booking type?','toast.removeIncomeTypeConfirm':'Remove this income source?',
+    'toast.clearDemoConfirm':'Clear all demo data?','toast.firebaseAdminOk':'Firebase access initialized — you are admin ✓',
+    'toast.receiptUploadFailed':'Receipt upload failed: {msg}','toast.statusUpdatedSimple':'Status updated to: {status}',
+    'cmd.dailyClosing':'Daily Closing','cmd.dailyClosingSub':'End of day report','cmd.newBooking':'New Booking','cmd.newBookingSub':'Create booking',
+    'cmd.addIncome':'Add Income','cmd.addIncomeSub':'Record income','cmd.addExpense':'Add Expense','cmd.addExpenseSub':'Record expense',
+    'cmd.addCustomer':'Add Customer','cmd.addCustomerSub':'New customer','cmd.quickGrab':'Quick Grab Income','cmd.quickGrabSub':'Record Grab earnings',
+    'cmd.toggleDark':'Toggle Dark Mode','cmd.toggleDarkSub':'Switch theme','title.language':'Language','title.darkMode':'Toggle Dark Mode',
+    'title.commandPalette':'Command Palette (⌘K)','th.plate':'Plate','th.model':'Model','th.year':'Year','th.color':'Color',
+    'th.license':'License','th.loginEmail':'Login Email','th.rating':'Rating','th.insurance':'Insurance Expiry','th.roadTax':'Road Tax Expiry',
+    'nav.roger':'Roger','page.roger':'Roger — Team Handoff','mobile.roger':'Roger',
+    'roger.sub':'Trip full? Open Roger and let teammates pick up the job.',
+    'roger.tabOpen':'Open Requests','roger.tabActive':'My Active','roger.tabHistory':'History',
+    'roger.tripTitle':'Roger Trip','roger.requestedBy':'Requested by','roger.claimedBy':'Claimed by',
+    'roger.balanceDue':'Balance to collect','roger.noOpen':'No open Roger requests','roger.noOpenSub':'When a teammate opens Roger, jobs appear here.',
+    'roger.noActive':'No active Roger trips','roger.noActiveSub':'Accept an open request to start.',
+    'roger.noHistory':'No Roger history yet','roger.noHistorySub':'Completed handoffs will appear here without customer contact info.',
+    'roger.confirmRequest':'Open Roger for this trip? Teammates can see route and balance (not customer details).',
+    'roger.confirmClaim':'Accept this Roger job? You will see customer name, phone and trip details.',
+    'roger.confirmCancel':'Cancel Roger request?',
+    'btn.roger':'📻 Roger','btn.claimRoger':'Accept Job','btn.cancelRoger':'Cancel Roger',
+    'btn.pickedUp':'Passenger Picked Up','btn.arrived':'Arrived / Completed',
+    'btn.generateReceipt':'📄 Receipt PDF',
+    'toast.receiptGenerated':'Receipt PDF downloaded ✓','toast.receiptFailed':'Failed to generate receipt PDF',
+    'receipt.title':'OFFICIAL RECEIPT','receipt.no':'Receipt No.','receipt.date':'Date','receipt.billTo':'Bill To',
+    'receipt.serviceDetails':'Service Details','receipt.total':'Total','receipt.deposit':'Deposit Paid',
+    'receipt.balance':'Balance Due','receipt.paymentMethod':'Payment Method','receipt.thankYou':'Thank you for your business!',
+    'receipt.incomeTitle':'PAYMENT RECEIPT','receipt.description':'Description','receipt.amount':'Amount','receipt.regNo':'Reg. No.',
+    'toast.rogerSent':'Roger sent to team ✓','toast.rogerClaimed':'Roger job accepted ✓',
+    'toast.rogerCancelled':'Roger cancelled','toast.rogerOwn':'You cannot accept your own Roger',
+    'toast.rogerCompleted':'Roger trip completed — customer info cleared ✓',
+    'roger.statusOpen':'Roger Open','roger.statusClaimed':'In Progress','roger.statusCompleted':'Completed',
+    'roger.tripRecord':'Trip record','roger.earned':'Amount','roger.customerHidden':'Customer contact hidden after completion'
+  },
+  zh: {
+    'nav.overview':'概览','nav.operations':'运营','nav.finance':'财务','nav.insights':'分析','nav.system':'系统',
+    'nav.dashboard':'首页','nav.calendar':'日历','nav.bookings':'订单','nav.mytrips':'我的行程','nav.customers':'客户',
+    'nav.drivers':'司机','nav.vehicles':'车辆','nav.income':'收入','nav.expenses':'支出','nav.closing':'日结',
+    'nav.reports':'报表','nav.notifications':'通知','nav.settings':'设置',
+    'page.dashboard':'首页','page.calendar':'日历','page.bookings':'订单管理','page.customers':'客户管理',
+    'page.drivers':'司机管理','page.vehicles':'车辆管理','page.income':'收入记录','page.expenses':'支出记录',
+    'page.closing':'每日结算','page.reports':'数据报表','page.notifications':'通知与提醒','page.settings':'系统设置','page.mytrips':'我的行程',
+    'stat.todayBookings':'今日订单','stat.todayIncome':'今日收入','stat.todayExpenses':'今日支出','stat.todayProfit':'今日利润',
+    'stat.thisMonthIncome':'本月收入','stat.thisMonthExpenses':'本月支出','stat.totalRecords':'记录总数',
+    'stat.avgPerTrip':'平均每单','stat.largestExpense':'最大支出',
+    'stat.sub.activeTrips':'进行中行程','stat.sub.collected':'已收款','stat.sub.recorded':'已记录','stat.sub.netEarnings':'净收益',
+    'section.recentBookings':'最近订单','section.driverStatus':'司机状态','section.monthlyIncome':'月度收入',
+    'section.outstanding':'未结清款项','section.quickActions':'快捷操作',
+    'btn.viewAll':'查看全部','btn.newBooking':'+ 新建订单','btn.recordExpense':'+ 记录支出','btn.addIncome':'+ 添加收入',
+    'btn.dailyClose':'🔐 每日结算','btn.login':'登录','btn.logout':'退出','btn.save':'保存','btn.cancel':'取消',
+    'btn.edit':'编辑','btn.del':'删除','btn.add':'添加','btn.viewDetails':'查看详情','btn.onTheWay':'出发中',
+    'login.title':'AppleRider','login.sub':'运输管理系统','login.secure':'AppleRider V1.0 · 安全登录',
+    'form.email':'邮箱','form.password':'密码','form.date':'日期','form.actions':'操作',
+    'mobile.home':'首页','mobile.bookings':'订单','mobile.mytrips':'行程','mobile.income':'收入','mobile.calendar':'日历',
+    'date.today':'今天','date.week':'本周','date.month':'本月','date.all':'全部','date.from':'从','date.to':'至','date.label':'📅 日期',
+    'closing.sub':'汇总今日营业数据','closing.incomeToday':'今日总收入','closing.expensesToday':'今日总支出',
+    'mytrips.sub':'分配给您的行程 — 点击查看详情',
+    'settings.bizProfile':'企业资料','settings.appearance':'外观与体验','settings.language':'语言',
+    'settings.languageSub':'English / 中文','settings.darkMode':'深色模式','settings.darkModeSub':'切换深色主题',
+    'ptr.pull':'↓ 下拉刷新','ptr.release':'↑ 松开刷新','ptr.loading':'刷新中...',
+    'role.admin':'管理员','role.driver':'司机','role.owner':'负责人',
+    'empty.noBookings':'暂无订单','empty.noBookingsSub':'创建第一笔订单开始使用。',
+    'empty.noIncome':'暂无收入记录','empty.noIncomeSub':'点击下方平台或手动添加收入。',
+    'empty.noExpenses':'暂无支出记录','empty.noExpensesSub':'记录燃油、维修等开支。',
+    'empty.noDrivers':'暂无司机','empty.allClear':'全部结清！','empty.noOutstanding':'没有未结款项 — 做得好！🎉',
+    'empty.noTrips':'暂无分配行程','empty.noTripsSub':'管理员分配订单后会显示在这里。',
+    'empty.profileNotLinked':'账号未关联','empty.profileNotLinkedSub':'请联系管理员在司机设置中填写您的登录邮箱。',
+    'toast.langChanged':'语言已切换 ✓','toast.loginFailed':'登录失败','toast.wrongCredentials':'邮箱或密码错误',
+    'toast.logoutConfirm':'确定退出登录？','toast.dateAmountRequired':'请填写日期和金额','toast.incomeTypeRequired':'请选择或输入收入类型',
+    'toast.incomeRecorded':'收入已记录 ✓','toast.incomeUpdated':'收入已更新 ✓','toast.expenseRecorded':'支出已记录 ✓',
+    'toast.deleteIncomeConfirm':'删除此收入记录？','toast.deleteBookingConfirm':'永久删除此订单？',
+    'toast.accessDenied':'无权访问','toast.statusUpdated':'状态已更新：{status}',
+    'toolbar.quickRecord':'快速记录 — 平台收入','toolbar.exportSnapshot':'↓ 导出快照',
+    'toolbar.json':'↓ JSON','toolbar.csv':'↓ CSV','toolbar.import':'↑ 导入',
+    'cmd.searchPlaceholder':'搜索页面、订单、客户、操作...',
+    'fb.connecting':'● 连接中...','fb.connected':'● Firebase 已连接','fb.error':'● Firebase 错误',
+    'status.New':'新订单','status.Confirmed':'已确认','status.Assigned':'已分配','status.DriverOnTheWay':'司机出发',
+    'status.PassengerPickedUp':'乘客已上车','status.Completed':'已完成','status.Cancelled':'已取消','status.NoShow':'未出现',
+    'driver.Available':'空闲','driver.Busy':'忙碌','driver.Driving':'行驶中','driver.Resting':'休息',
+    'driver.OffDuty':'下班','driver.Leave':'请假','driver.Emergency':'紧急',
+    'pickup':'上车','dropoff':'下车','customer':'客户','balance':'余额',
+    'allTypes':'全部类型','allStatus':'全部状态',
+    'reports.summary':'汇总','reports.income':'收入','reports.expense':'支出','reports.booking':'订单',
+    'loader.text':'正在加载工作区...',
+    'th.bookingId':'订单号','th.customer':'客户','th.type':'类型','th.dateTime':'日期时间',
+    'th.pickup':'上车点','th.dropoff':'下车点','th.amount':'金额','th.payment':'付款','th.status':'状态',
+    'th.name':'姓名','th.phone':'电话','th.totalBookings':'总订单','th.totalSpent':'总消费','th.lastBooking':'最近订单',
+    'th.description':'描述','th.driver':'司机','th.category':'类别','th.vehicle':'车辆','th.receipt':'收据',
+    'search.bookings':'搜索订单...','search.customers':'搜索客户...',
+    'btn.addCustomer':'+ 添加客户','btn.addDriver':'+ 添加司机','btn.addVehicle':'+ 添加车辆',
+    'btn.addExpense':'+ 添加支出','btn.newBookingShort':'+ 订单',
+    'btn.saveBooking':'保存订单','btn.saveCustomer':'保存客户','btn.saveDriver':'保存司机',
+    'btn.saveVehicle':'保存车辆','btn.saveIncome':'保存收入','btn.saveExpense':'保存支出',
+    'btn.signingIn':'登录中...','btn.view':'查看',
+    'form.dateReq':'日期 *','form.typeReq':'类型 *','form.amountReq':'金额 (RM) *','form.categoryReq':'类别 *',
+    'form.paymentMethod':'付款方式','form.selectDriver':'选择司机','form.selectVehicle':'选择车辆',
+    'form.customIncomeType':'输入自定义收入类型','form.incomeDescPh':'例如：KLIA 到 Pavilion',
+    'form.expenseDescPh':'支出详情','form.receiptOptional':'收据（可选）',
+    'modal.newBooking':'新建订单','modal.newCustomer':'新建客户','modal.addIncome':'添加收入',
+    'modal.recordExpense':'记录支出','modal.addDriver':'添加司机','modal.addVehicle':'添加车辆',
+    'modal.bookingDetails':'订单详情','modal.editBooking':'编辑订单','modal.editIncome':'编辑收入',
+    'settings.bookingTypes':'订单类型','settings.incomeSources':'收入来源','settings.firebase':'Firebase 连接',
+    'settings.notifications':'通知设置','settings.data':'数据',
+    'empty.noBookingsFound':'未找到订单','empty.adjustFilters':'请调整筛选条件或创建新订单。',
+    'toast.plateModelRequired':'请填写车牌和车型','toast.vehicleUpdated':'车辆已更新 ✓','toast.vehicleAdded':'车辆已添加 ✓',
+    'closing.netProfit':'今日净利润 / 亏损','closing.completedTrips':'完成行程','closing.outstandingBalance':'未结余额',
+    'closing.newCustomers':'新客户','closing.notes':'结算备注','closing.notesPh':'添加今日备注...','closing.saveReport':'✓ 保存每日结算报告',
+    'form.customerReq':'客户 *','form.bookingTypeReq':'订单类型 *','form.timeReq':'时间 *','form.pickupReq':'上车地点 *',
+    'form.dropoffReq':'下车地点 *','form.totalAmount':'总金额 (RM)','form.deposit':'订金 (RM)','form.balance':'余额 (RM)',
+    'form.paymentStatus':'付款状态','form.assignDriver':'分配司机','form.vehicleLabel':'车辆','form.statusLabel':'状态',
+    'form.notesLabel':'备注','form.notesPh':'航班号、特殊要求等','form.nameReq':'姓名 *','form.phoneReq':'电话 *',
+    'form.plateReq':'车牌号 *','form.modelReq':'车型 *','form.customBookingType':'输入自定义订单类型','form.notAssigned':'— 未分配 —',
+    'form.selectCustomer':'选择客户','form.customType':'+ 自定义类型...','form.loginEmail':'登录邮箱','form.license':'驾照号码',
+    'modal.editCustomer':'编辑客户','modal.editExpense':'编辑支出','modal.editDriver':'编辑司机','modal.editVehicle':'编辑车辆',
+    'settings.businessName':'企业名称','settings.ownerName':'负责人姓名','settings.phone':'电话','settings.emailLabel':'邮箱',
+    'settings.bizRegId':'商业注册号码','settings.bizRegIdPh':'例如 202301012345 (1234567-A)',
+    'settings.currency':'货币','settings.saveProfile':'保存资料','settings.bookingTypesSub':'管理创建订单时可用的订单类型',
+    'settings.incomeTypesSub':'平台与收入类别（Grab、inDrive 等）','settings.statusLabel':'状态','settings.checking':'检查中...',
+    'settings.testConnection':'↻ 测试连接','settings.rulesHint':'项目文件夹中的安全规则文件：',
+    'settings.soundEffects':'音效','settings.soundEffectsSub':'操作成功时播放提示音','settings.confetti':'庆祝彩纸',
+    'settings.confettiSub':'保存每日结算时显示','settings.notifNewBooking':'新订单提醒','settings.notifPayment':'付款提醒',
+    'settings.notifMaintenance':'车辆保养到期','settings.notifClosing':'每日结算提醒','settings.notifOutstanding':'未结余额提醒',
+    'settings.exportAll':'📤 导出全部数据 (JSON)','settings.clearDemo':'🗑 清除演示数据',
+    'toast.signingIn':'登录中...','toast.loginNoAccess':'登录成功但无管理员权限。请联系管理员在 Firebase → settings/access → admins 添加您的邮箱',
+    'toast.fileTooLarge':'文件过大（最大 5MB）','toast.receiptUploaded':'收据已上传 ✓','toast.rulesBlocked':'Firebase 规则阻止访问 — 请部署 firestore.rules',
+    'toast.saveFailed':'保存失败：{msg}','toast.nothingToExport':'没有可导出的内容','toast.dashboardExported':'首页快照已导出 ✓',
+    'toast.reportExported':'报表已导出 ✓','toast.importFailed':'导入失败：{msg}','toast.refreshed':'已刷新 ✓',
+    'toast.fileProtocolWarn':'请使用 http://localhost:8080 打开 — file:// 会阻止 Firebase 登录。',
+    'toast.accessSetupIssue':'访问设置有问题 — 请检查 Firebase settings/access','toast.fillRequired':'请填写所有必填项',
+    'toast.namePhoneRequired':'请填写姓名和电话','toast.namePhoneReq':'请填写姓名和电话',
+    'toast.bookingDeleted':'订单已删除','toast.incomeDeleted':'收入已删除','toast.expenseDeleted':'支出已删除',
+    'toast.driverDeleted':'司机已删除','toast.vehicleDeleted':'车辆已删除','toast.customerDeleted':'客户已删除',
+    'toast.expenseUpdated':'支出已更新 ✓','toast.dailyClosingSaved':'每日结算已保存 ✓',
+    'toast.bookingTypeAdded':'订单类型已添加 ✓','toast.bookingTypeRemoved':'订单类型已移除','toast.incomeSourceAdded':'收入来源已添加 ✓',
+    'toast.incomeSourceRemoved':'收入来源已移除','toast.settingsSaved':'设置已保存 ✓','toast.dataExported':'数据已导出 ✓',
+    'toast.deleteCustomerConfirm':'删除此客户？','toast.deleteExpenseConfirm':'删除此支出记录？',
+    'toast.deleteDriverConfirm':'删除此司机？','toast.deleteVehicleConfirm':'删除此车辆？',
+    'toast.removeBookingTypeConfirm':'移除此订单类型？','toast.removeIncomeTypeConfirm':'移除此收入来源？',
+    'toast.clearDemoConfirm':'清除所有演示数据？','toast.firebaseAdminOk':'Firebase 访问已初始化 — 您是管理员 ✓',
+    'toast.receiptUploadFailed':'收据上传失败：{msg}','toast.statusUpdatedSimple':'状态已更新：{status}',
+    'cmd.dailyClosing':'每日结算','cmd.dailyClosingSub':'日终报告','cmd.newBooking':'新建订单','cmd.newBookingSub':'创建订单',
+    'cmd.addIncome':'添加收入','cmd.addIncomeSub':'记录收入','cmd.addExpense':'添加支出','cmd.addExpenseSub':'记录支出',
+    'cmd.addCustomer':'添加客户','cmd.addCustomerSub':'新客户','cmd.quickGrab':'快速 Grab 收入','cmd.quickGrabSub':'记录 Grab 收入',
+    'cmd.toggleDark':'切换深色模式','cmd.toggleDarkSub':'切换主题','title.language':'语言','title.darkMode':'切换深色模式',
+    'title.commandPalette':'命令面板 (⌘K)','th.plate':'车牌','th.model':'车型','th.year':'年份','th.color':'颜色',
+    'th.license':'驾照','th.loginEmail':'登录邮箱','th.rating':'评分','th.insurance':'保险到期','th.roadTax':'路税到期',
+    'nav.roger':'Roger','page.roger':'Roger — 团队转单','mobile.roger':'Roger',
+    'roger.sub':'行程满了？开 Roger 让队友接单。',
+    'roger.tabOpen':'待接单','roger.tabActive':'进行中','roger.tabHistory':'历史记录',
+    'roger.tripTitle':'Roger 行程','roger.requestedBy':'发起人','roger.claimedBy':'接单人',
+    'roger.balanceDue':'待收余额','roger.noOpen':'暂无 Roger 请求','roger.noOpenSub':'队友发出 Roger 后会显示在这里。',
+    'roger.noActive':'暂无进行中的 Roger','roger.noActiveSub':'接受待接单任务后开始行程。',
+    'roger.noHistory':'暂无 Roger 历史','roger.noHistorySub':'完成后只保留行程记录和金额，客户联系方式会隐藏。',
+    'roger.confirmRequest':'为此行程开 Roger？队友可看到路线和余额（不含客户资料）。',
+    'roger.confirmClaim':'接受此 Roger 单？你将看到客户姓名、电话和载送资料。',
+    'roger.confirmCancel':'取消 Roger 请求？',
+    'btn.roger':'📻 Roger','btn.claimRoger':'接单','btn.cancelRoger':'取消 Roger',
+    'btn.pickedUp':'已接客','btn.arrived':'已抵达 / 完成',
+    'btn.generateReceipt':'📄 收据 PDF',
+    'toast.receiptGenerated':'收据 PDF 已下载 ✓','toast.receiptFailed':'生成收据 PDF 失败',
+    'receipt.title':'正式收据','receipt.no':'收据编号','receipt.date':'日期','receipt.billTo':'账单收件人',
+    'receipt.serviceDetails':'服务详情','receipt.total':'总计','receipt.deposit':'已付订金',
+    'receipt.balance':'待付余额','receipt.paymentMethod':'付款方式','receipt.thankYou':'感谢您的支持！',
+    'receipt.incomeTitle':'付款收据','receipt.description':'描述','receipt.amount':'金额','receipt.regNo':'注册号',
+    'toast.rogerSent':'Roger 已发送给团队 ✓','toast.rogerClaimed':'Roger 已接单 ✓',
+    'toast.rogerCancelled':'Roger 已取消','toast.rogerOwn':'不能接自己发出的 Roger',
+    'toast.rogerCompleted':'Roger 行程已完成 — 客户资料已隐藏 ✓',
+    'roger.statusOpen':'Roger 待接','roger.statusClaimed':'进行中','roger.statusCompleted':'已完成',
+    'roger.tripRecord':'行程记录','roger.earned':'金额','roger.customerHidden':'完成后客户联系方式已隐藏'
+  }
+};
+
+function t(key, vars = {}) {
+  let str = I18N[currentLang]?.[key] ?? I18N.en[key] ?? key;
+  Object.entries(vars).forEach(([k, v]) => { str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), v); });
+  return str;
+}
+
+function tStatus(status) {
+  if (!status) return '—';
+  const key = 'status.' + String(status).replace(/\s+/g, '');
+  return I18N[currentLang]?.[key] ?? I18N.en[key] ?? status;
+}
+
+function tDriverStatus(status) {
+  if (!status) return '—';
+  const key = 'driver.' + String(status).replace(/\s+/g, '');
+  return I18N[currentLang]?.[key] ?? I18N.en[key] ?? status;
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });
+  const langBtn = document.getElementById('lang-toggle');
+  if (langBtn) { langBtn.textContent = currentLang === 'zh' ? 'EN' : '中文'; langBtn.title = t('title.language'); }
+  const langSel = document.getElementById('setting-language');
+  if (langSel) langSel.value = currentLang;
+  document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
+  const fbEl = document.querySelector('#firebase-status [data-i18n]');
+  if (fbEl && !firebaseConnected) fbEl.textContent = t('fb.connecting');
+  const themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn) themeBtn.title = t('title.darkMode');
+  const cmdBtn = document.querySelector('[onclick="openCommandPalette()"]');
+  if (cmdBtn) cmdBtn.title = t('title.commandPalette');
+  populateTypeSelects();
+  resetLoginButton();
+  updateTopbarDate();
+}
+
+function loadLang() {
+  const saved = localStorage.getItem('applerider-lang');
+  if (saved && I18N[saved]) currentLang = saved;
+  applyI18n();
+}
+
+window.setLang = function(lang) {
+  if (!I18N[lang]) return;
+  currentLang = lang;
+  localStorage.setItem('applerider-lang', lang);
+  applyI18n();
+  document.querySelectorAll('.module-toolbar').forEach(el => el.remove());
+  injectModuleToolbars(false);
+  refreshActivePage();
+  toast(t('toast.langChanged'), 'success');
+};
+
+window.toggleLang = function() { setLang(currentLang === 'zh' ? 'en' : 'zh'); };
+
+function updateTopbarDate() {
+  const el = document.getElementById('topbar-date');
+  if (!el) return;
+  const now = new Date();
+  const locale = currentLang === 'zh' ? 'zh-CN' : 'en-MY';
+  el.textContent = now.toLocaleDateString(locale, { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+
+function refreshActivePage() {
+  hidePageSkeleton();
+  const activeEl = document.querySelector('.page.active');
+  const page = activeEl?.id?.replace('page-', '') || currentPageName || 'dashboard';
+  currentPageName = page;
+  document.getElementById('topbar-title').textContent = t('page.' + page);
+  const cfg = SECTION_CFG[page];
+  if (cfg?.render) cfg.render();
+  else if (page === 'settings') { loadSettingsForm(); renderSettingsTypes(); checkFirebaseConnection(); }
+  else if (page === 'reports') renderReports('summary');
+  updateBadges();
+}
+
 let appSettings = {
   bookingTypes: [...DEFAULT_BOOKING_TYPES],
   incomeTypes: [...DEFAULT_INCOME_TYPES],
@@ -1508,6 +1924,7 @@ let appSettings = {
   owner: '',
   phone: '',
   email: '',
+  bizRegId: '',
   currency: 'MYR (RM)',
   theme: 'light',
   soundEnabled: false,
@@ -1554,7 +1971,7 @@ function hideLogin() {
 function resetLoginButton() {
   const btn = document.getElementById('login-btn');
   if (btn) {
-    btn.textContent = 'Login';
+    btn.textContent = t('btn.login');
     btn.disabled = false;
     btn.style.opacity = '1';
   }
@@ -1566,7 +1983,7 @@ window.doLogin = async function() {
   const errEl = document.getElementById('login-error');
   errEl.textContent = '';
   const btn = document.getElementById('login-btn');
-  btn.textContent = 'Signing in...'; btn.disabled = true;
+  btn.textContent = t('toast.signingIn'); btn.disabled = true;
   try {
     const cred = await Promise.race([
       signInWithEmailAndPassword(auth, email, pass),
@@ -1579,20 +1996,21 @@ window.doLogin = async function() {
     } catch (be) {
       console.warn('bootstrapAccess:', be);
       if (be.code === 'permission-denied') {
-        errEl.textContent = 'Login OK but no admin access. Ask admin to add your email in Firebase → settings/access → admins';
+        errEl.textContent = t('toast.loginNoAccess');
       }
     }
     hideLogin();
     startListeners();
     applyRoleUI();
+    refreshActivePage();
   } catch(e) {
-    errEl.textContent = 'Login failed: ' + (e.code === 'auth/invalid-credential' ? 'Wrong email or password' : e.message);
+    errEl.textContent = t('toast.loginFailed') + ': ' + (e.code === 'auth/invalid-credential' ? t('toast.wrongCredentials') : e.message);
     resetLoginButton();
   }
 };
 
 window.doLogout = async function() {
-  if (!confirm('Logout?')) return;
+  if (!confirm(t('toast.logoutConfirm'))) return;
   unsubscribers.forEach(u => u());
   unsubscribers = [];
   listenersStarted = false;
@@ -1751,6 +2169,7 @@ function emptyState(type, title, subtitle, actionHtml = '') {
 }
 
 function countUp(el, target, opts = {}) {
+  target = parseFloat(target) || 0;
   if (!el || REDUCED_MOTION) {
     if (el) el.textContent = (opts.prefix||'') + (opts.decimals ? target.toFixed(opts.decimals) : Math.round(target)) + (opts.suffix||'');
     return;
@@ -1775,11 +2194,13 @@ function countUp(el, target, opts = {}) {
 function animateStat(id, value, opts = {}) {
   const el = document.getElementById(id);
   if (!el) return;
-  countUp(el, value, {
-    prefix: el.dataset.countupPrefix || opts.prefix || '',
-    suffix: el.dataset.countupSuffix || opts.suffix || '',
-    decimals: parseInt(el.dataset.countupDecimals) || opts.decimals || 0
-  });
+  const num = parseFloat(value) || 0;
+  const prefix = opts.prefix ?? el.dataset.countupPrefix ?? '';
+  const suffix = opts.suffix ?? el.dataset.countupSuffix ?? '';
+  const decimals = opts.decimals ?? (el.dataset.countupDecimals !== undefined ? Number(el.dataset.countupDecimals) : 0);
+  el.textContent = prefix + (decimals ? num.toFixed(decimals) : String(Math.round(num))) + suffix;
+  el.dataset.currentValue = num;
+  countUp(el, num, { prefix, suffix, decimals });
 }
 
 function staggerReveal(container, itemSelector = '.stagger-item') {
@@ -1827,6 +2248,7 @@ const SECTION_CFG = {
   drivers:   { col: 'drivers',   dateField: null,        render: () => renderDrivers() },
   vehicles:  { col: 'vehicles',  dateField: null,        render: () => renderVehicles() },
   mytrips:   { col: 'bookings',  dateField: 'date',      render: () => renderMyTrips(), driverOnly: true },
+  roger:     { col: 'bookings',  dateField: 'date',      render: () => renderRoger() },
   dashboard: { col: null,        dateField: 'date',      render: () => renderDashboard(), dashboardFilter: true },
   closing:   { col: null,        dateField: null,        render: () => renderClosing(), singleDate: true },
   notifications: { col: 'notifications', dateField: null, render: () => renderNotifications() },
@@ -1834,7 +2256,7 @@ const SECTION_CFG = {
   reports:   { col: null,        dateField: 'date',      render: () => renderReports('summary'), reportFilter: true },
 };
 
-const PAGE_ORDER = ['dashboard','calendar','bookings','customers','drivers','vehicles','income','expenses','closing','reports','notifications','settings','mytrips'];
+const PAGE_ORDER = ['dashboard','calendar','bookings','customers','drivers','vehicles','income','expenses','closing','reports','notifications','settings','mytrips','roger'];
 let currentPageName = 'dashboard';
 let cmdActiveIdx = 0;
 
@@ -1844,32 +2266,32 @@ function moduleToolbarHTML(section) {
   const hasDate = (cfg.dateField || cfg.singleDate || cfg.dashboardFilter || cfg.reportFilter) && !cfg.noDateUI;
   const datePart = hasDate ? `
     <div class="date-range-bar">
-      <span class="toolbar-label">📅 Date</span>
+      <span class="toolbar-label">${t('date.label')}</span>
       ${cfg.singleDate
         ? `<input type="date" class="form-control form-control-sm" id="${section}-date-from" onchange="onSectionDateChange('${section}')">`
-        : `<input type="date" class="form-control form-control-sm" id="${section}-date-from" onchange="onSectionDateChange('${section}')" title="From">
-           <span class="text-xs text-muted">to</span>
-           <input type="date" class="form-control form-control-sm" id="${section}-date-to" onchange="onSectionDateChange('${section}')" title="To">
+        : `<input type="date" class="form-control form-control-sm" id="${section}-date-from" onchange="onSectionDateChange('${section}')" title="${t('date.from')}">
+           <span class="text-xs text-muted">${t('date.to')}</span>
+           <input type="date" class="form-control form-control-sm" id="${section}-date-to" onchange="onSectionDateChange('${section}')" title="${t('date.to')}">
            <select class="form-control form-control-sm" id="${section}-date-preset" onchange="applyDatePreset('${section}', this.value)">
-             <option value="month">This Month</option>
-             <option value="today">Today</option>
-             <option value="week">This Week</option>
-             <option value="all">All Time</option>
+             <option value="month">${t('date.month')}</option>
+             <option value="today">${t('date.today')}</option>
+             <option value="week">${t('date.week')}</option>
+             <option value="all">${t('date.all')}</option>
            </select>`}
     </div>` : '';
   const exportPart = (cfg.col || section === 'dashboard' || section === 'reports') ? `
     <div class="toolbar-actions">
-      ${cfg.col ? `<button class="btn btn-ghost btn-sm" onclick="exportSection('${section}','json')">↓ JSON</button>
-      <button class="btn btn-ghost btn-sm" onclick="exportSection('${section}','csv')">↓ CSV</button>
-      <button class="btn btn-ghost btn-sm" onclick="importSection('${section}')">↑ Import</button>
+      ${cfg.col ? `<button class="btn btn-ghost btn-sm" onclick="exportSection('${section}','json')">${t('toolbar.json')}</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportSection('${section}','csv')">${t('toolbar.csv')}</button>
+      <button class="btn btn-ghost btn-sm" onclick="importSection('${section}')">${t('toolbar.import')}</button>
       <input type="file" id="import-${section}" accept=".json,.csv" hidden onchange="handleImport('${section}', this)">`
-      : section === 'dashboard' ? `<button class="btn btn-ghost btn-sm" onclick="exportDashboardSnapshot()">↓ Export Snapshot</button>`
-      : `<button class="btn btn-ghost btn-sm" onclick="exportReportSnapshot()">↓ Export Report</button>`}
+      : section === 'dashboard' ? `<button class="btn btn-ghost btn-sm" onclick="exportDashboardSnapshot()">${t('toolbar.exportSnapshot')}</button>`
+      : `<button class="btn btn-ghost btn-sm" onclick="exportReportSnapshot()">${t('toolbar.exportSnapshot')}</button>`}
     </div>` : '';
   return `<div class="module-toolbar" id="toolbar-${section}">${datePart}${exportPart}</div>`;
 }
 
-function injectModuleToolbars() {
+function injectModuleToolbars(reinitDates = true) {
   Object.keys(SECTION_CFG).forEach(section => {
     const page = document.getElementById('page-' + section);
     if (!page || page.querySelector('.module-toolbar')) return;
@@ -1882,11 +2304,11 @@ function injectModuleToolbars() {
       else page.insertBefore(toolbar, page.firstChild);
     }
   });
-  initDatePresets();
+  if (reinitDates) initDatePresets();
 }
 
 function initDatePresets() {
-  ['bookings','income','expenses','customers','mytrips','dashboard','reports'].forEach(s => {
+  ['bookings','income','expenses','customers','mytrips','roger','dashboard','reports'].forEach(s => {
     applyDatePreset(s, (s === 'dashboard' || s === 'closing') ? 'today' : 'month', true);
   });
   const closingFrom = document.getElementById('closing-date-from');
@@ -1894,10 +2316,17 @@ function initDatePresets() {
 }
 
 function getMonthRange() {
-  const now = new Date();
-  const from = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
-  const to = today();
-  return { from, to };
+  const monthKey = getThisMonthKey();
+  return { from: `${monthKey}-01`, to: today() };
+}
+
+function sumAmount(items, field = 'amount') {
+  return (items || []).reduce((s, item) => s + (parseFloat(item?.[field]) || 0), 0);
+}
+
+function getThisMonthItems(items, dateField = 'date') {
+  const monthKey = getThisMonthKey();
+  return (items || []).filter(item => normalizeDateStr(item[dateField]).startsWith(monthKey));
 }
 
 function getWeekRange() {
@@ -1942,7 +2371,7 @@ function getSectionDateRange(section) {
 function filterByDateRange(items, dateField, from, to) {
   if (!dateField || (!from && !to)) return items;
   return items.filter(item => {
-    const d = (item[dateField] || '').slice(0, 10);
+    const d = normalizeDateStr(item[dateField]);
     if (from && d < from) return false;
     if (to && d > to) return false;
     return true;
@@ -2335,13 +2764,14 @@ function init() {
   syncLoginLogo();
   syncLoaderLogo();
   loadTheme();
+  loadLang();
   injectModuleToolbars();
   initCommandPalette();
   initPullToRefresh();
   const now = new Date();
   calYear = now.getFullYear();
   calMonth = now.getMonth();
-  document.getElementById('topbar-date').textContent = now.toLocaleDateString('en-MY', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  updateTopbarDate();
 
   if (location.protocol === 'file:') {
     const warn = document.getElementById('login-error');
@@ -2357,7 +2787,10 @@ function init() {
       syncLoginLogo();
       hideLogin();
       startListeners();
-      bootstrapAccess().then(() => applyRoleUI()).catch(e => {
+      bootstrapAccess().then(() => {
+        applyRoleUI();
+        refreshActivePage();
+      }).catch(e => {
         console.error('bootstrapAccess', e);
         toast('Access setup issue — check Firebase settings/access', 'error');
       });
@@ -2385,13 +2818,14 @@ function startListeners() {
   subscribeCol('customers',  () => { if(isPageActive('customers')) renderCustomers(); });
   subscribeCol('drivers',    () => { applyRoleUI(); if(isPageActive('drivers')) renderDrivers(); if(isPageActive('mytrips')) renderMyTrips(); renderDashboard(); });
   subscribeCol('vehicles',   () => { if(isPageActive('vehicles')) renderVehicles(); });
-  subscribeCol('bookings',   () => { renderDashboard(); renderCalendar(); if(isPageActive('bookings')) renderBookings(); if(isPageActive('closing')) renderClosing(); });
-  subscribeCol('income',     () => { if(isPageActive('income')) renderIncome(); renderDashboard(); });
-  subscribeCol('expenses',   () => { if(isPageActive('expenses')) renderExpenses(); renderDashboard(); });
+  subscribeCol('bookings',   () => { renderDashboard(); renderCalendar(); if(isPageActive('bookings')) renderBookings(); if(isPageActive('closing')) renderClosing(); if(isPageActive('mytrips')) renderMyTrips(); if(isPageActive('roger')) renderRoger(); updateRogerBadge(); });
+  subscribeCol('income',     () => { renderIncome(); renderDashboard(); });
+  subscribeCol('expenses',   () => { renderExpenses(); renderDashboard(); });
   subscribeCol('closings',   () => {});
   subscribeCol('notifications', () => { if(isPageActive('notifications')) renderNotifications(); updateBadges(); });
 
-  setTimeout(() => { hideAppLoader(); updateBadges(); renderDashboard(); renderCalendar(); }, 2500);
+  refreshActivePage();
+  setTimeout(() => { hideAppLoader(); refreshActivePage(); renderCalendar(); }, 2500);
 }
 
 function isPageActive(page) {
@@ -2400,7 +2834,21 @@ function isPageActive(page) {
 }
 
 function today() {
-  return new Date().toISOString().split('T')[0];
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function normalizeDateStr(val) {
+  if (!val) return '';
+  if (typeof val === 'string') return val.slice(0, 10);
+  if (val.toDate) return val.toDate().toISOString().slice(0, 10);
+  if (val.seconds) return new Date(val.seconds * 1000).toISOString().slice(0, 10);
+  return String(val).slice(0, 10);
+}
+
+function getThisMonthKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
 // ============================================================
@@ -2423,13 +2871,7 @@ function nav(page) {
     void nextPage.offsetWidth;
   }
   currentPageName = page;
-  const titles = {
-    dashboard:'Dashboard', calendar:'Calendar', bookings:'Bookings', customers:'Customers',
-    drivers:'Drivers', vehicles:'Vehicles', income:'Income', expenses:'Expenses',
-    closing:'Daily Closing', reports:'Reports', notifications:'Notifications', settings:'Settings',
-    mytrips:'My Trips'
-  };
-  document.getElementById('topbar-title').textContent = titles[page] || page;
+  document.getElementById('topbar-title').textContent = t('page.' + page) || page;
   document.getElementById('topbar-actions').innerHTML = '';
 
   if (page === 'dashboard') renderDashboard();
@@ -2439,6 +2881,7 @@ function nav(page) {
   else if (page === 'drivers') renderDrivers();
   else if (page === 'vehicles') renderVehicles();
   else if (page === 'mytrips') renderMyTrips();
+  else if (page === 'roger') renderRoger();
   else if (page === 'income') renderIncome();
   else if (page === 'expenses') renderExpenses();
   else if (page === 'closing') renderClosing();
@@ -2466,8 +2909,8 @@ function renderDashboard() {
   const rangeBookings = db.bookings.filter(b => inRange(b.date));
   const rangeIncome = db.income.filter(i => inRange(i.date));
   const rangeExpenses = db.expenses.filter(e => inRange(e.date));
-  const totalIncome = rangeIncome.reduce((s,i) => s+i.amount, 0);
-  const totalExpenses = rangeExpenses.reduce((s,e) => s+e.amount, 0);
+  const totalIncome = sumAmount(rangeIncome);
+  const totalExpenses = sumAmount(rangeExpenses);
   const totalProfit = totalIncome - totalExpenses;
 
   animateStat('stat-today-bookings', rangeBookings.length);
@@ -2477,7 +2920,7 @@ function renderDashboard() {
   staggerReveal(document.getElementById('dash-stats-grid'));
 
   const recentEl = document.getElementById('dash-recent-bookings');
-  if (!db.bookings.length) { recentEl.innerHTML = emptyState('bookings', 'No bookings yet', 'Create your first booking to get started.', '<button class="btn btn-primary btn-sm" onclick="openBookingModal()">+ New Booking</button>'); }
+  if (!db.bookings.length) { recentEl.innerHTML = emptyState('bookings', t('empty.noBookings'), t('empty.noBookingsSub'), `<button class="btn btn-primary btn-sm" onclick="openBookingModal()">${t('btn.newBooking')}</button>`); }
   else {
     const recent = [...db.bookings].sort((a,b) => (b.id||'').localeCompare(a.id||'')).slice(0,5);
     recentEl.innerHTML = recent.map(b => {
@@ -2499,15 +2942,17 @@ function renderDashboard() {
       <div style="flex:1"><div style="font-size:13px;font-weight:600">${d.name}</div></div>
       ${driverStatusBadge(d.status)}
     </div>
-  `).join('') || '<div class="text-dim text-sm">No drivers</div>';
+  `).join('') || `<div class="text-dim text-sm">${t('empty.noDrivers')}</div>`;
 
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = currentLang === 'zh'
+    ? ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
+    : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const now = new Date();
   const monthData = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const m = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    const total = db.income.filter(inc => inc.date.startsWith(m)).reduce((s,inc) => s+inc.amount, 0);
+    const total = sumAmount(db.income.filter(inc => (inc.date || '').startsWith(m)));
     monthData.push({ label: months[d.getMonth()], value: total });
   }
   const maxVal = Math.max(...monthData.map(m => m.value), 1);
@@ -2520,7 +2965,7 @@ function renderDashboard() {
 
   const outstanding = db.bookings.filter(b => b.paymentStatus !== 'Fully Paid' && b.paymentStatus !== 'Cancelled' && b.paymentStatus !== 'Refunded' && parseFloat(b.balance) > 0);
   const outEl = document.getElementById('dash-outstanding');
-  if (!outstanding.length) outEl.innerHTML = emptyState('income', 'All clear!', 'No outstanding payments — great job! 🎉');
+  if (!outstanding.length) outEl.innerHTML = emptyState('income', t('empty.allClear'), t('empty.noOutstanding'));
   else outEl.innerHTML = outstanding.slice(0,5).map(b => {
     const c = db.customers.find(x => x.id === b.customerId);
     return `<div class="detail-row">
@@ -2652,9 +3097,12 @@ window.saveBooking = async function() {
   const dropoff= document.getElementById('b-dropoff').value;
   if (!custId || !date || !time || !pickup || !dropoff) { toast('Please fill all required fields', 'error'); return; }
   const editId = document.getElementById('edit-booking-id').value;
+  const cust = db.customers.find(c => c.id === custId);
   const booking = {
     id: editId || `RF${++bookingCounter}`,
     customerId: custId,
+    customerName: cust?.name || '',
+    customerPhone: cust?.phone || '',
     type: getBookingTypeValue(), date, time, pickup, dropoff,
     amount: parseFloat(document.getElementById('b-amount').value) || 0,
     deposit: parseFloat(document.getElementById('b-deposit').value) || 0,
@@ -2665,6 +3113,7 @@ window.saveBooking = async function() {
     vehicleId: document.getElementById('b-vehicle').value,
     status: document.getElementById('b-status').value,
     notes: document.getElementById('b-notes').value,
+    roger: editId ? (db.bookings.find(x => x.id === editId)?.roger || { status: 'none' }) : { status: 'none' },
     updatedAt: new Date().toISOString()
   };
   await saveRecord('bookings', booking);
@@ -2703,6 +3152,7 @@ window.viewBooking = function(id) {
       ${statuses.map(s => `<option ${s===b.status?'selected':''}>${s}</option>`).join('')}
     </select></div>
     <button class="btn btn-ghost" onclick="closeModal('modal-booking-detail')">Close</button>
+    <button class="btn btn-ghost" onclick="generateBookingReceipt('${b.id}')">${t('btn.generateReceipt')}</button>
     ${userRole !== 'driver' ? `<button class="btn btn-danger" onclick="closeModal('modal-booking-detail');deleteBooking('${b.id}')">Delete</button>` : ''}
     <button class="btn btn-primary" onclick="quickUpdateStatus('${b.id}')">Update Status</button>
     ${userRole !== 'driver' ? `<button class="btn btn-ghost" onclick="closeModal('modal-booking-detail');editBooking('${b.id}')">Edit</button>` : ''}
@@ -2929,8 +3379,9 @@ function renderIncome() {
   const typeF = document.getElementById('income-type-filter')?.value || '';
   let list = getSectionData('income').sort((a,b) => (b.date||'').localeCompare(a.date||''));
   if (typeF) list = list.filter(i => i.type === typeF);
-  const monthTotal = list.reduce((s,i) => s+i.amount, 0);
-  const avg = list.length ? monthTotal / list.length : 0;
+  const monthItems = getThisMonthItems(db.income);
+  const monthTotal = sumAmount(monthItems);
+  const avg = monthItems.length ? monthTotal / monthItems.length : 0;
   animateStat('income-month-total', monthTotal, { prefix: 'RM ', decimals: 2 });
   animateStat('income-total-records', list.length);
   animateStat('income-avg', avg, { prefix: 'RM ', decimals: 2 });
@@ -2940,10 +3391,11 @@ function renderIncome() {
     const driver = db.drivers.find(d => d.id === i.driverId);
     return `<tr><td>${i.date}</td><td><span class="badge badge-green">${i.type}</span></td><td class="text-sm">${i.desc || '—'}</td><td class="text-sm">${driver?.name || '—'}</td><td class="text-sm text-muted">${i.payment}</td><td class="font-bold green">RM ${parseFloat(i.amount).toFixed(2)}</td>
       <td class="table-actions"><div class="action-btns">
-        <button class="btn btn-ghost btn-sm" onclick="editIncome('${i.id}')">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteIncome('${i.id}')">Del</button>
+        <button class="btn btn-ghost btn-sm" onclick="generateIncomeReceipt('${i.id}')" title="${t('btn.generateReceipt')}">📄</button>
+        <button class="btn btn-ghost btn-sm" onclick="editIncome('${i.id}')">${t('btn.edit')}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteIncome('${i.id}')">${t('btn.del')}</button>
       </div></td></tr>`;
-  }).join('') || `<tr><td colspan="7">${emptyState('income','No income recorded','Tap a platform below or add income manually.','<button class="btn btn-primary btn-sm" onclick="openIncomeModal()">+ Add Income</button>')}</td></tr>`;
+  }).join('') || `<tr><td colspan="7">${emptyState('income', t('empty.noIncome'), t('empty.noIncomeSub'), `<button class="btn btn-primary btn-sm" onclick="openIncomeModal()">${t('btn.addIncome')}</button>`)}</td></tr>`;
 }
 window.renderIncome = renderIncome;
 window.filterIncome = renderIncome;
@@ -2965,13 +3417,13 @@ window.openIncomeModal = function() {
 window.saveIncome = async function() {
   const date = document.getElementById('i-date').value;
   const amount = parseFloat(document.getElementById('i-amount').value);
-  if (!date || !amount) { toast('Date and amount required', 'error'); return; }
+  if (!date || !amount) { toast(t('toast.dateAmountRequired'), 'error'); return; }
   const editId = document.getElementById('edit-income-id').value;
   const typeVal = getIncomeTypeValue();
-  if (!typeVal) { toast('Please select or enter income type', 'error'); return; }
+  if (!typeVal) { toast(t('toast.incomeTypeRequired'), 'error'); return; }
   const income = { id: editId || 'I'+Date.now(), date, type: typeVal, desc: document.getElementById('i-desc').value, driverId: document.getElementById('i-driver').value, payment: document.getElementById('i-payment').value, amount };
   await saveRecord('income', income);
-  toast(editId ? 'Income updated ✓' : 'Income recorded ✓', 'success');
+  toast(editId ? t('toast.incomeUpdated') : t('toast.incomeRecorded'), 'success');
   closeModal('modal-income');
 };
 
@@ -2982,8 +3434,9 @@ function renderExpenses() {
   const typeF = document.getElementById('expense-type-filter')?.value || '';
   let list = getSectionData('expenses').sort((a,b) => (b.date||'').localeCompare(a.date||''));
   if (typeF) list = list.filter(e => e.type === typeF);
-  const monthTotal = list.reduce((s,e) => s+e.amount, 0);
-  const largest = list.reduce((m,e) => e.amount > m ? e.amount : m, 0);
+  const monthItems = getThisMonthItems(db.expenses);
+  const monthTotal = sumAmount(monthItems);
+  const largest = monthItems.reduce((m, e) => Math.max(m, parseFloat(e.amount) || 0), 0);
   animateStat('expense-month-total', monthTotal, { prefix: 'RM ', decimals: 2 });
   animateStat('expense-total-records', list.length);
   animateStat('expense-largest', largest, { prefix: 'RM ', decimals: 2 });
@@ -3165,7 +3618,7 @@ function updateBadges() {
 // ============================================================
 function bookingStatusBadge(status) {
   const map = { 'New':'badge-blue', 'Confirmed':'badge-cyan', 'Assigned':'badge-purple', 'Driver On The Way':'badge-yellow', 'Passenger Picked Up':'badge-orange', 'Completed':'badge-green', 'Cancelled':'badge-gray', 'No Show':'badge-red' };
-  return `<span class="badge ${map[status]||'badge-gray'}">${status||'—'}</span>`;
+  return `<span class="badge ${map[status]||'badge-gray'}">${tStatus(status)}</span>`;
 }
 function paymentStatusBadge(status) {
   const map = { 'Pending':'badge-yellow', 'Deposit Paid':'badge-blue', 'Partial Paid':'badge-orange', 'Fully Paid':'badge-green', 'Cancelled':'badge-gray', 'Refunded':'badge-purple' };
@@ -3173,7 +3626,7 @@ function paymentStatusBadge(status) {
 }
 function driverStatusBadge(status) {
   const map = { 'Available':'badge-green', 'Busy':'badge-yellow', 'Driving':'badge-blue', 'Resting':'badge-cyan', 'Off Duty':'badge-gray', 'Leave':'badge-orange', 'Emergency':'badge-red' };
-  return `<span class="badge ${map[status]||'badge-gray'}">${status||'—'}</span>`;
+  return `<span class="badge ${map[status]||'badge-gray'}">${tDriverStatus(status)}</span>`;
 }
 function vehicleStatusBadge(status) {
   const map = { 'Available':'badge-green', 'On Trip':'badge-blue', 'Maintenance':'badge-yellow', 'Repair':'badge-orange', 'Inactive':'badge-gray' };
@@ -3364,7 +3817,7 @@ window.deleteBooking = async function(id) {
 };
 
 window.deleteIncome = async function(id) {
-  if (!confirm('Delete this income record?')) return;
+  if (!confirm(t('toast.deleteIncomeConfirm'))) return;
   await fsDel('income', id);
   toast('Income deleted', 'success');
 };
@@ -3437,7 +3890,7 @@ function applyRoleUI() {
   document.querySelectorAll('.driver-nav, .driver-only').forEach(el => el.style.display = isDriver ? '' : 'none');
   const roleEl = document.querySelector('.user-info .role');
   if (roleEl) {
-    roleEl.innerHTML = isDriver ? '<span class="role-badge driver">Driver</span>' : '<span class="role-badge admin">Admin</span>';
+    roleEl.innerHTML = isDriver ? `<span class="role-badge driver">${t('role.driver')}</span>` : `<span class="role-badge admin">${t('role.admin')}</span>`;
   }
   if (isDriver && currentDriverProfile) {
     document.querySelector('.user-info .name').textContent = currentDriverProfile.name;
@@ -3448,8 +3901,8 @@ function applyRoleUI() {
       homeBtn.setAttribute('onclick', "mobileNav('mytrips')");
       const icon = homeBtn.querySelector('.m-icon');
       if (icon) icon.textContent = '🚗';
-      const label = homeBtn.childNodes[homeBtn.childNodes.length - 1];
-      if (label?.nodeType === 3) label.textContent = 'My Trips';
+      const label = homeBtn.querySelector('span:not(.m-icon)');
+      if (label) label.textContent = t('mobile.mytrips');
     }
     if (document.querySelector('.page.active')?.id === 'page-dashboard') nav('mytrips');
   } else {
@@ -3457,6 +3910,7 @@ function applyRoleUI() {
     const dashBtn = document.querySelector('.mobile-nav-item[data-page="dashboard"]');
     if (dashBtn && !dashBtn.dataset.page) dashBtn.dataset.page = 'dashboard';
   }
+  updateRogerBadge();
 }
 
 function getDriverBookings() {
@@ -3473,7 +3927,7 @@ function updateMyTripsBadge() {
 
 function renderMyTrips() {
   if (!currentDriverProfile) {
-    document.getElementById('mytrips-list').innerHTML = emptyState('drivers','Profile not linked','Ask admin to set your Login Email in driver settings.');
+    document.getElementById('mytrips-list').innerHTML = emptyState('drivers', t('empty.profileNotLinked'), t('empty.profileNotLinkedSub'));
     return;
   }
   const statusF = document.getElementById('mytrips-filter')?.value || '';
@@ -3482,27 +3936,32 @@ function renderMyTrips() {
   if (statusF) list = list.filter(b => b.status === statusF);
   const el = document.getElementById('mytrips-list');
   if (!list.length) {
-    el.innerHTML = emptyState('trips','No trips assigned','When admin assigns you a booking, it will appear here.');
+    el.innerHTML = emptyState('trips', t('empty.noTrips'), t('empty.noTripsSub'));
     return;
   }
   el.innerHTML = list.map(b => {
     const cust = db.customers.find(c => c.id === b.customerId);
+    const r = getRoger(b);
+    const snap = getCustomerSnapshot(b);
+    const custLabel = snap?.name || cust?.name || (r.status === 'open' ? t('roger.statusOpen') : t('customer'));
     const vehicle = db.vehicles.find(v => v.id === b.vehicleId);
     return `<div class="trip-card stagger-item">
       <div class="trip-card-head">
-        <div><span class="td-mono font-bold">${b.id}</span> ${bookingStatusBadge(b.status)}</div>
+        <div><span class="td-mono font-bold">${b.id}</span> ${bookingStatusBadge(b.status)} ${r.status === 'open' ? `<span class="roger-badge">${t('roger.statusOpen')}</span>` : ''}</div>
         <div class="text-sm text-muted">${b.date} · ${b.time}</div>
       </div>
-      <div class="text-sm font-bold mb-4">${b.type||''} · ${cust?.name||'Customer'}</div>
+      <div class="text-sm font-bold mb-4">${b.type||''} · ${custLabel}</div>
       <div class="trip-route">
-        <div class="trip-route-item"><span class="trip-dot pickup"></span><span><strong>Pickup:</strong> ${b.pickup||'—'}</span></div>
-        <div class="trip-route-item"><span class="trip-dot dropoff"></span><span><strong>Dropoff:</strong> ${b.dropoff||'—'}</span></div>
+        <div class="trip-route-item"><span class="trip-dot pickup"></span><span><strong>${t('pickup')}:</strong> ${b.pickup||'—'}</span></div>
+        <div class="trip-route-item"><span class="trip-dot dropoff"></span><span><strong>${t('dropoff')}:</strong> ${b.dropoff||'—'}</span></div>
       </div>
       <div class="flex-center gap-8 mt-8" style="justify-content:space-between;flex-wrap:wrap">
-        <div class="text-sm">${vehicle ? '🚙 '+vehicle.plate : ''} · <span class="font-bold green">RM ${parseFloat(b.amount||0).toFixed(2)}</span></div>
+        <div class="text-sm">${vehicle ? '🚙 '+vehicle.plate : ''} · <span class="font-bold green">RM ${parseFloat(b.amount||0).toFixed(2)}</span>${parseFloat(b.balance)>0 ? ` · <span class="red font-bold">${t('balance')}: RM ${parseFloat(b.balance).toFixed(2)}</span>` : ''}</div>
         <div class="action-btns">
-          <button class="btn btn-primary btn-sm" onclick="viewDriverTrip('${b.id}')">View Details</button>
-          ${!['Completed','Cancelled'].includes(b.status) ? `<button class="btn btn-success btn-sm" onclick="driverUpdateStatus('${b.id}','Driver On The Way')">On The Way</button>` : ''}
+          ${getRoger(b).status === 'claimed' && getRoger(b).claimedBy === currentDriverProfile?.id ? `<button class="btn btn-primary btn-sm" onclick="viewRogerTrip('${b.id}')">${t('btn.viewDetails')}</button>` : `<button class="btn btn-primary btn-sm" onclick="viewDriverTrip('${b.id}')">${t('btn.viewDetails')}</button>`}
+          ${canRequestRoger(b) ? `<button class="btn btn-ghost btn-sm" onclick="requestRoger('${b.id}')">${t('btn.roger')}</button>` : ''}
+          ${r.status === 'open' && r.requestedBy === currentDriverProfile?.id ? `<button class="btn btn-ghost btn-sm" onclick="cancelRoger('${b.id}')">${t('btn.cancelRoger')}</button>` : ''}
+          ${!['Completed','Cancelled'].includes(b.status) && !['open','claimed'].includes(getRoger(b).status) ? `<button class="btn btn-success btn-sm" onclick="driverUpdateStatus('${b.id}','Driver On The Way')">${t('btn.onTheWay')}</button>` : ''}
         </div>
       </div>
       ${b.notes ? `<div class="text-xs text-dim mt-8">📝 ${b.notes}</div>` : ''}
@@ -3514,7 +3973,12 @@ window.renderMyTrips = renderMyTrips;
 
 window.viewDriverTrip = function(id) {
   const b = db.bookings.find(x => x.id === id);
-  if (!b || b.driverId !== currentDriverProfile?.id) { toast('Access denied', 'error'); return; }
+  if (!b || b.driverId !== currentDriverProfile?.id) { toast(t('toast.accessDenied'), 'error'); return; }
+  const r = getRoger(b);
+  if (r.status === 'claimed' && r.claimedBy === currentDriverProfile?.id) {
+    viewRogerTrip(id);
+    return;
+  }
   viewBooking(id);
 };
 
@@ -3522,9 +3986,294 @@ window.driverUpdateStatus = async function(id, status) {
   const b = db.bookings.find(x => x.id === id);
   if (!b || b.driverId !== currentDriverProfile?.id) return;
   b.status = status;
+  b.updatedAt = new Date().toISOString();
+  if (getRoger(b).status === 'claimed' && status === 'Completed') {
+    await completeRogerTrip(b);
+    return;
+  }
   await saveRecord('bookings', b);
-  toast('Status updated: ' + status, 'success');
+  toast(t('toast.statusUpdated', { status: tStatus(status) }), 'success');
   renderMyTrips();
+  renderRoger();
+};
+
+// ============================================================
+// ROGER — team handoff
+// ============================================================
+let rogerActiveTab = 'open';
+
+function getRoger(b) {
+  return b?.roger || { status: 'none' };
+}
+
+function getCustomerSnapshot(b) {
+  const r = getRoger(b);
+  if (r.status === 'completed') return null;
+  if (r.customerSnapshot?.name) return r.customerSnapshot;
+  if (r.status === 'claimed' && r.claimedBy === currentDriverProfile?.id) {
+    return { name: b.customerName || '—', phone: b.customerPhone || '' };
+  }
+  return null;
+}
+
+function getOpenRogerBookings() {
+  return db.bookings.filter(b => getRoger(b).status === 'open')
+    .sort((a, b) => (b.roger?.requestedAt || '').localeCompare(a.roger?.requestedAt || ''));
+}
+
+function getMyActiveRogerBookings() {
+  if (!currentDriverProfile) return [];
+  return db.bookings.filter(b => {
+    const r = getRoger(b);
+    return r.status === 'claimed' && r.claimedBy === currentDriverProfile.id
+      && !['Completed', 'Cancelled', 'No Show'].includes(b.status);
+  });
+}
+
+function getRogerHistoryBookings() {
+  if (!currentDriverProfile && userRole !== 'admin') return [];
+  return db.bookings.filter(b => {
+    const r = getRoger(b);
+    if (r.status !== 'completed') return false;
+    if (userRole === 'admin') return true;
+    return r.requestedBy === currentDriverProfile.id || r.claimedBy === currentDriverProfile.id;
+  }).sort((a, b) => (b.roger?.completedAt || '').localeCompare(a.roger?.completedAt || ''));
+}
+
+function canRequestRoger(b) {
+  if (!currentDriverProfile || b.driverId !== currentDriverProfile.id) return false;
+  if (['Completed', 'Cancelled', 'No Show'].includes(b.status)) return false;
+  const rs = getRoger(b).status;
+  return rs === 'none' || rs === 'completed';
+}
+
+function updateRogerBadge() {
+  const el = document.getElementById('badge-roger');
+  if (!el) return;
+  let count = getOpenRogerBookings().length;
+  if (currentDriverProfile) {
+    count = getOpenRogerBookings().filter(b => getRoger(b).requestedBy !== currentDriverProfile.id).length;
+  }
+  el.textContent = count;
+  el.style.display = count > 0 ? 'inline' : 'none';
+}
+
+window.switchRogerTab = function(tab) {
+  rogerActiveTab = tab;
+  document.querySelectorAll('.roger-tab').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
+  renderRoger();
+};
+
+function renderRogerBoardCard(b, mode) {
+  const r = getRoger(b);
+  const snap = mode === 'active' ? getCustomerSnapshot(b) : null;
+  const isMine = r.requestedBy === currentDriverProfile?.id;
+  const canClaim = mode === 'open' && currentDriverProfile && !isMine && r.status === 'open';
+  return `<div class="roger-card ${mode === 'active' ? 'claimed' : mode === 'history' ? 'history' : ''}">
+    <div class="flex-center gap-8" style="justify-content:space-between;flex-wrap:wrap;margin-bottom:8px">
+      <div><span class="td-mono font-bold">${b.id}</span> <span class="roger-badge">${mode === 'open' ? t('roger.statusOpen') : mode === 'active' ? t('roger.statusClaimed') : t('roger.statusCompleted')}</span></div>
+      <div class="text-sm text-muted">${b.date} · ${b.time}</div>
+    </div>
+    <div class="text-sm font-bold mb-4">${b.type || ''}</div>
+    <div class="trip-route">
+      <div class="trip-route-item"><span class="trip-dot pickup"></span><span><strong>${t('pickup')}:</strong> ${b.pickup || '—'}</span></div>
+      <div class="trip-route-item"><span class="trip-dot dropoff"></span><span><strong>${t('dropoff')}:</strong> ${b.dropoff || '—'}</span></div>
+    </div>
+    ${snap ? `<div class="detail-row mt-8"><div class="detail-label">${t('customer')}</div><div class="detail-value font-bold">${snap.name} · ${snap.phone}</div></div>` : ''}
+    <div class="flex-center gap-8 mt-8" style="justify-content:space-between;flex-wrap:wrap">
+      <div>
+        <div class="text-xs text-dim">${t('roger.requestedBy')}</div>
+        <div class="text-sm font-bold">${r.requestedByName || '—'}</div>
+        ${r.claimedByName ? `<div class="text-xs text-dim mt-4">${t('roger.claimedBy')}</div><div class="text-sm font-bold">${r.claimedByName}</div>` : ''}
+      </div>
+      <div class="text-right">
+        <div class="text-xs text-dim">${mode === 'history' ? t('roger.earned') : t('roger.balanceDue')}</div>
+        <div class="roger-balance">RM ${parseFloat(mode === 'history' ? b.amount : b.balance || 0).toFixed(2)}</div>
+      </div>
+    </div>
+    ${mode === 'history' ? `<div class="text-xs text-dim mt-8">🔒 ${t('roger.customerHidden')}</div>` : ''}
+    <div class="action-btns mt-8">
+      ${canClaim ? `<button class="btn btn-primary btn-sm" onclick="claimRoger('${b.id}')">${t('btn.claimRoger')}</button>` : ''}
+      ${mode === 'open' && isMine ? `<button class="btn btn-ghost btn-sm" onclick="cancelRoger('${b.id}')">${t('btn.cancelRoger')}</button>` : ''}
+      ${mode === 'active' ? `<button class="btn btn-primary btn-sm" onclick="viewRogerTrip('${b.id}')">${t('btn.viewDetails')}</button>` : ''}
+      ${mode === 'open' && userRole === 'admin' ? `<button class="btn btn-ghost btn-sm" onclick="viewBooking('${b.id}')">${t('btn.view')}</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderRoger() {
+  const el = document.getElementById('roger-list');
+  if (!el) return;
+  let list = [];
+  let emptyTitle = t('roger.noOpen');
+  let emptySub = t('roger.noOpenSub');
+  if (rogerActiveTab === 'open') list = getOpenRogerBookings();
+  else if (rogerActiveTab === 'active') {
+    list = getMyActiveRogerBookings();
+    emptyTitle = t('roger.noActive');
+    emptySub = t('roger.noActiveSub');
+  } else {
+    list = getRogerHistoryBookings();
+    emptyTitle = t('roger.noHistory');
+    emptySub = t('roger.noHistorySub');
+  }
+  if (!list.length) {
+    el.innerHTML = emptyState('trips', emptyTitle, emptySub);
+    updateRogerBadge();
+    return;
+  }
+  el.innerHTML = list.map(b => renderRogerBoardCard(b, rogerActiveTab)).join('');
+  updateRogerBadge();
+}
+window.renderRoger = renderRoger;
+
+window.requestRoger = async function(bookingId) {
+  const b = db.bookings.find(x => x.id === bookingId);
+  if (!b || !canRequestRoger(b)) { toast(t('toast.accessDenied'), 'error'); return; }
+  if (!confirm(t('roger.confirmRequest'))) return;
+  b.roger = {
+    status: 'open',
+    requestedBy: currentDriverProfile.id,
+    requestedByName: currentDriverProfile.name,
+    requestedAt: new Date().toISOString(),
+    claimedBy: '',
+    claimedByName: ''
+  };
+  b.updatedAt = new Date().toISOString();
+  await saveRecord('bookings', b);
+  toast(t('toast.rogerSent'), 'success');
+  renderMyTrips();
+  renderRoger();
+  updateRogerBadge();
+};
+
+window.cancelRoger = async function(bookingId) {
+  const b = db.bookings.find(x => x.id === bookingId);
+  const r = getRoger(b);
+  if (!b || r.requestedBy !== currentDriverProfile?.id || r.status !== 'open') return;
+  if (!confirm(t('roger.confirmCancel'))) return;
+  b.roger = { status: 'none' };
+  b.updatedAt = new Date().toISOString();
+  await saveRecord('bookings', b);
+  toast(t('toast.rogerCancelled'), 'success');
+  renderMyTrips();
+  renderRoger();
+};
+
+window.claimRoger = async function(bookingId) {
+  const b = db.bookings.find(x => x.id === bookingId);
+  const r = getRoger(b);
+  if (!b || r.status !== 'open' || !currentDriverProfile) return;
+  if (r.requestedBy === currentDriverProfile.id) { toast(t('toast.rogerOwn'), 'error'); return; }
+  if (!confirm(t('roger.confirmClaim'))) return;
+  b.roger = {
+    ...r,
+    status: 'claimed',
+    claimedBy: currentDriverProfile.id,
+    claimedByName: currentDriverProfile.name,
+    claimedAt: new Date().toISOString(),
+    customerSnapshot: { name: b.customerName || '—', phone: b.customerPhone || '' }
+  };
+  b.driverId = currentDriverProfile.id;
+  b.status = 'Assigned';
+  b.updatedAt = new Date().toISOString();
+  await saveRecord('bookings', b);
+  toast(t('toast.rogerClaimed'), 'success');
+  switchRogerTab('active');
+  renderMyTrips();
+  viewRogerTrip(bookingId);
+};
+
+async function completeRogerTrip(b) {
+  const r = getRoger(b);
+  b.status = 'Completed';
+  b.roger = {
+    ...r,
+    status: 'completed',
+    completedAt: new Date().toISOString(),
+    customerSnapshot: null
+  };
+  b.updatedAt = new Date().toISOString();
+  await saveRecord('bookings', b);
+  toast(t('toast.rogerCompleted'), 'success');
+  closeModal('modal-roger-trip');
+  renderMyTrips();
+  renderRoger();
+}
+
+window.rogerUpdateStatus = async function(bookingId, status) {
+  const b = db.bookings.find(x => x.id === bookingId);
+  const r = getRoger(b);
+  if (!b || r.claimedBy !== currentDriverProfile?.id) return;
+  b.status = status;
+  b.updatedAt = new Date().toISOString();
+  if (status === 'Completed') {
+    await completeRogerTrip(b);
+    return;
+  }
+  await saveRecord('bookings', b);
+  toast(t('toast.statusUpdated', { status: tStatus(status) }), 'success');
+  viewRogerTrip(bookingId);
+  renderRoger();
+  renderMyTrips();
+};
+
+window.viewRogerTrip = function(bookingId) {
+  const b = db.bookings.find(x => x.id === bookingId);
+  if (!b) return;
+  const r = getRoger(b);
+  const isClaimer = r.claimedBy === currentDriverProfile?.id;
+  const isAdmin = userRole === 'admin';
+  const isHistory = r.status === 'completed';
+  if (!isAdmin && !isClaimer && r.status !== 'open') {
+    toast(t('toast.accessDenied'), 'error');
+    return;
+  }
+
+  if (isHistory || (r.status === 'open' && !isClaimer && !isAdmin)) {
+    document.getElementById('roger-trip-content').innerHTML = renderRogerBoardCard(b, isHistory ? 'history' : 'open').replace(/<div class="action-btns mt-8">[\s\S]*?<\/div>/, '');
+    document.getElementById('roger-trip-footer').innerHTML = `
+      <button class="btn btn-ghost" onclick="closeModal('modal-roger-trip')">${t('btn.cancel')}</button>
+      ${r.status === 'open' && currentDriverProfile && r.requestedBy !== currentDriverProfile.id ? `<button class="btn btn-primary" onclick="closeModal('modal-roger-trip');claimRoger('${b.id}')">${t('btn.claimRoger')}</button>` : ''}`;
+    openModal('modal-roger-trip');
+    return;
+  }
+
+  const snap = getCustomerSnapshot(b);
+  const statuses = ['Driver On The Way', 'Passenger Picked Up', 'Completed'];
+  document.getElementById('roger-trip-content').innerHTML = `
+    <div class="flex-center gap-8 mb-16">
+      <span class="td-mono" style="font-size:18px;font-weight:800">${b.id}</span>
+      ${bookingStatusBadge(b.status)}
+    </div>
+    ${snap ? `<div class="detail-row"><div class="detail-label">${t('customer')}</div><div class="detail-value font-bold">${snap.name}</div></div>
+    <div class="detail-row"><div class="detail-label">${t('th.phone')}</div><div class="detail-value"><a href="tel:${snap.phone}">${snap.phone || '—'}</a></div></div>` : ''}
+    <div class="detail-row"><div class="detail-label">${t('th.type')}</div><div class="detail-value">${b.type}</div></div>
+    <div class="detail-row"><div class="detail-label">${t('th.dateTime')}</div><div class="detail-value">${b.date} ${b.time}</div></div>
+    <div class="detail-row"><div class="detail-label">${t('pickup')}</div><div class="detail-value">${b.pickup}</div></div>
+    <div class="detail-row"><div class="detail-label">${t('dropoff')}</div><div class="detail-value">${b.dropoff}</div></div>
+    <hr class="divider">
+    <div class="detail-row"><div class="detail-label">${t('roger.balanceDue')}</div><div class="detail-value roger-balance">RM ${parseFloat(b.balance || 0).toFixed(2)}</div></div>
+    <div class="detail-row"><div class="detail-label">${t('th.amount')}</div><div class="detail-value">RM ${parseFloat(b.amount || 0).toFixed(2)}</div></div>
+    <div class="detail-row"><div class="detail-label">${t('roger.requestedBy')}</div><div class="detail-value">${r.requestedByName || '—'}</div></div>
+    ${b.notes ? `<hr class="divider"><div class="detail-row"><div class="detail-label">${t('form.notesLabel')}</div><div class="detail-value">${b.notes}</div></div>` : ''}
+  `;
+
+  if (isClaimer && !isHistory && !['Completed', 'Cancelled', 'No Show'].includes(b.status)) {
+    document.getElementById('roger-trip-footer').innerHTML = `
+      <button class="btn btn-ghost" onclick="closeModal('modal-roger-trip')">${t('btn.cancel')}</button>
+      <button class="btn btn-ghost" onclick="generateBookingReceipt('${b.id}')">${t('btn.generateReceipt')}</button>
+      <div class="roger-status-steps" style="flex:1">
+        ${!['Driver On The Way', 'Passenger Picked Up', 'Completed'].includes(b.status) ? `<button class="btn btn-success btn-sm" onclick="rogerUpdateStatus('${b.id}','Driver On The Way')">${t('btn.onTheWay')}</button>` : ''}
+        ${['Driver On The Way'].includes(b.status) ? `<button class="btn btn-primary btn-sm" onclick="rogerUpdateStatus('${b.id}','Passenger Picked Up')">${t('btn.pickedUp')}</button>` : ''}
+        ${['Passenger Picked Up', 'Driver On The Way'].includes(b.status) ? `<button class="btn btn-primary btn-sm" onclick="rogerUpdateStatus('${b.id}','Completed')">${t('btn.arrived')}</button>` : ''}
+      </div>`;
+  } else {
+    document.getElementById('roger-trip-footer').innerHTML = `
+      <button class="btn btn-ghost" onclick="closeModal('modal-roger-trip')">${t('btn.cancel')}</button>
+      ${snap ? `<button class="btn btn-ghost" onclick="generateBookingReceipt('${b.id}')">${t('btn.generateReceipt')}</button>` : ''}`;
+  }
+  openModal('modal-roger-trip');
 };
 
 // ============================================================
@@ -3558,6 +4307,8 @@ function loadSettingsForm() {
   document.getElementById('setting-owner').value = appSettings.owner || '';
   document.getElementById('setting-phone').value = appSettings.phone || '';
   document.getElementById('setting-email').value = appSettings.email || '';
+  const regEl = document.getElementById('setting-biz-reg');
+  if (regEl) regEl.value = appSettings.bizRegId || '';
   const soundEl = document.getElementById('setting-sound');
   if (soundEl) soundEl.checked = !!appSettings.soundEnabled;
   const confEl = document.getElementById('setting-confetti');
@@ -3567,6 +4318,155 @@ function loadSettingsForm() {
 }
 
 // ============================================================
+// RECEIPT PDF
+// ============================================================
+function escapeReceiptHtml(value) {
+  return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function getCurrencyPrefix() {
+  const match = (appSettings.currency || 'MYR (RM)').match(/\(([^)]+)\)/);
+  return match ? `${match[1]} ` : 'RM ';
+}
+
+function fmtReceiptMoney(amount) {
+  return `${getCurrencyPrefix()}${parseFloat(amount || 0).toFixed(2)}`;
+}
+
+function getBizReceiptHeaderHtml() {
+  const parts = [];
+  if (appSettings.bizName) parts.push(`<div style="font-size:22px;font-weight:800">${escapeReceiptHtml(appSettings.bizName)}</div>`);
+  if (appSettings.owner) parts.push(`<div style="color:#555;margin-top:4px">${escapeReceiptHtml(appSettings.owner)}</div>`);
+  const contact = [appSettings.phone, appSettings.email].filter(Boolean).map(escapeReceiptHtml).join(' · ');
+  if (contact) parts.push(`<div style="color:#555;margin-top:4px;font-size:13px">${contact}</div>`);
+  if (appSettings.bizRegId) parts.push(`<div style="color:#555;margin-top:4px;font-size:13px">${t('receipt.regNo')} ${escapeReceiptHtml(appSettings.bizRegId)}</div>`);
+  return parts.join('');
+}
+
+function getBookingCustomerInfo(b) {
+  const snap = getCustomerSnapshot(b);
+  const cust = db.customers.find(c => c.id === b.customerId);
+  return {
+    name: snap?.name || cust?.name || b.customerName || '—',
+    phone: snap?.phone || cust?.phone || b.customerPhone || ''
+  };
+}
+
+function buildBookingReceiptHtml(b) {
+  const customer = getBookingCustomerInfo(b);
+  const driver = db.drivers.find(d => d.id === b.driverId);
+  const vehicle = db.vehicles.find(v => v.id === b.vehicleId);
+  const balanceDue = parseFloat(b.balance || 0) > 0;
+  return `
+    <div style="border-bottom:3px solid #111;padding-bottom:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start;gap:24px">
+      <div>${getBizReceiptHeaderHtml()}</div>
+      <div style="text-align:right;min-width:180px">
+        <div style="font-size:24px;font-weight:800">${t('receipt.title')}</div>
+        <div style="margin-top:8px;font-size:13px;color:#555">${t('receipt.no')} ${escapeReceiptHtml(b.id)}</div>
+        <div style="font-size:13px;color:#555">${t('receipt.date')} ${today()}</div>
+      </div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:12px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">${t('receipt.billTo')}</div>
+      <div style="font-size:16px;font-weight:700">${escapeReceiptHtml(customer.name)}</div>
+      ${customer.phone ? `<div style="color:#555;margin-top:4px">${escapeReceiptHtml(customer.phone)}</div>` : ''}
+    </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:12px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">${t('receipt.serviceDetails')}</div>
+      <table style="width:100%;border-collapse:collapse;font-size:14px">
+        <tr><td style="padding:6px 0;color:#666;width:35%">${t('th.type')}</td><td style="padding:6px 0">${escapeReceiptHtml(b.type)}</td></tr>
+        <tr><td style="padding:6px 0;color:#666">${t('th.dateTime')}</td><td style="padding:6px 0">${escapeReceiptHtml(b.date)} ${escapeReceiptHtml(b.time)}</td></tr>
+        <tr><td style="padding:6px 0;color:#666">${t('pickup')}</td><td style="padding:6px 0">${escapeReceiptHtml(b.pickup)}</td></tr>
+        <tr><td style="padding:6px 0;color:#666">${t('dropoff')}</td><td style="padding:6px 0">${escapeReceiptHtml(b.dropoff)}</td></tr>
+        ${driver ? `<tr><td style="padding:6px 0;color:#666">${t('th.driver')}</td><td style="padding:6px 0">${escapeReceiptHtml(driver.name)}</td></tr>` : ''}
+        ${vehicle ? `<tr><td style="padding:6px 0;color:#666">${t('th.vehicle')}</td><td style="padding:6px 0">${escapeReceiptHtml(vehicle.plate)} — ${escapeReceiptHtml(vehicle.model)}</td></tr>` : ''}
+      </table>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:14px">
+      <tr style="border-top:2px solid #111"><td style="padding:10px 0;font-weight:700">${t('receipt.total')}</td><td style="padding:10px 0;text-align:right;font-weight:700;font-size:18px">${fmtReceiptMoney(b.amount)}</td></tr>
+      <tr><td style="padding:6px 0;color:#666">${t('receipt.deposit')}</td><td style="padding:6px 0;text-align:right;color:#059669">${fmtReceiptMoney(b.deposit)}</td></tr>
+      <tr><td style="padding:6px 0;font-weight:700">${t('receipt.balance')}</td><td style="padding:6px 0;text-align:right;font-weight:700;color:${balanceDue ? '#dc2626' : '#059669'}">${fmtReceiptMoney(b.balance)}</td></tr>
+      <tr><td style="padding:6px 0;color:#666">${t('receipt.paymentMethod')}</td><td style="padding:6px 0;text-align:right">${escapeReceiptHtml(b.paymentMethod || '—')}</td></tr>
+    </table>
+    <div style="text-align:center;color:#666;font-size:13px;margin-top:32px;border-top:1px solid #ddd;padding-top:16px">${t('receipt.thankYou')}</div>
+  `;
+}
+
+function buildIncomeReceiptHtml(income) {
+  const driver = db.drivers.find(d => d.id === income.driverId);
+  return `
+    <div style="border-bottom:3px solid #111;padding-bottom:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start;gap:24px">
+      <div>${getBizReceiptHeaderHtml()}</div>
+      <div style="text-align:right;min-width:180px">
+        <div style="font-size:24px;font-weight:800">${t('receipt.incomeTitle')}</div>
+        <div style="margin-top:8px;font-size:13px;color:#555">${t('receipt.no')} ${escapeReceiptHtml(income.id)}</div>
+        <div style="font-size:13px;color:#555">${t('receipt.date')} ${escapeReceiptHtml(income.date)}</div>
+      </div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:24px">
+      <tr><td style="padding:8px 0;color:#666;width:35%">${t('th.type')}</td><td style="padding:8px 0">${escapeReceiptHtml(income.type)}</td></tr>
+      <tr><td style="padding:8px 0;color:#666">${t('receipt.description')}</td><td style="padding:8px 0">${escapeReceiptHtml(income.desc || '—')}</td></tr>
+      ${driver ? `<tr><td style="padding:8px 0;color:#666">${t('th.driver')}</td><td style="padding:8px 0">${escapeReceiptHtml(driver.name)}</td></tr>` : ''}
+      <tr><td style="padding:8px 0;color:#666">${t('receipt.paymentMethod')}</td><td style="padding:8px 0">${escapeReceiptHtml(income.payment || '—')}</td></tr>
+      <tr style="border-top:2px solid #111"><td style="padding:12px 0;font-weight:700">${t('receipt.amount')}</td><td style="padding:12px 0;text-align:right;font-weight:700;font-size:18px;color:#059669">${fmtReceiptMoney(income.amount)}</td></tr>
+    </table>
+    <div style="text-align:center;color:#666;font-size:13px;margin-top:32px;border-top:1px solid #ddd;padding-top:16px">${t('receipt.thankYou')}</div>
+  `;
+}
+
+async function downloadReceiptPdf(html, filename) {
+  if (typeof html2pdf === 'undefined') {
+    toast(t('toast.receiptFailed'), 'error');
+    return;
+  }
+  const root = document.getElementById('receipt-print-root');
+  if (!root) { toast(t('toast.receiptFailed'), 'error'); return; }
+  root.innerHTML = html;
+  try {
+    await html2pdf().set({
+      margin: [10, 10, 10, 10],
+      filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(root).save();
+    toast(t('toast.receiptGenerated'), 'success');
+  } catch (err) {
+    console.error(err);
+    toast(t('toast.receiptFailed'), 'error');
+  } finally {
+    root.innerHTML = '';
+  }
+}
+
+function canGenerateBookingReceipt(b) {
+  if (!b) return false;
+  if (userRole === 'admin') return true;
+  if (b.driverId === currentDriverProfile?.id) return true;
+  const r = getRoger(b);
+  return r.claimedBy === currentDriverProfile?.id;
+}
+
+window.generateBookingReceipt = async function(bookingId) {
+  const b = db.bookings.find(x => x.id === bookingId);
+  if (!canGenerateBookingReceipt(b)) {
+    toast(t('toast.accessDenied'), 'error');
+    return;
+  }
+  await downloadReceiptPdf(buildBookingReceiptHtml(b), `Receipt-${b.id}.pdf`);
+};
+
+window.generateIncomeReceipt = async function(incomeId) {
+  const income = db.income.find(x => x.id === incomeId);
+  if (!income) return;
+  if (userRole === 'driver' && income.driverId && income.driverId !== currentDriverProfile?.id) {
+    toast(t('toast.accessDenied'), 'error');
+    return;
+  }
+  await downloadReceiptPdf(buildIncomeReceiptHtml(income), `Receipt-${income.id}.pdf`);
+};
+
+// ============================================================
 // SETTINGS
 // ============================================================
 window.saveBizSettings = async function() {
@@ -3574,9 +4474,10 @@ window.saveBizSettings = async function() {
   appSettings.owner = document.getElementById('setting-owner').value;
   appSettings.phone = document.getElementById('setting-phone').value;
   appSettings.email = document.getElementById('setting-email').value;
+  appSettings.bizRegId = document.getElementById('setting-biz-reg')?.value?.trim() || '';
   appSettings.currency = document.getElementById('setting-currency').value;
   await saveAppSettings();
-  toast('Settings saved ✓', 'success');
+  toast(t('toast.settingsSaved'), 'success');
 };
 window.exportData = function() {
   const blob = new Blob([JSON.stringify({ ...db, appSettings }, null, 2)], { type:'application/json' });
