@@ -413,10 +413,12 @@
   .cmd-item-kbd { font-size: 10px; color: var(--text3); padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px; }
 
   /* FIREBASE STATUS */
-  .fb-status { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
-  .fb-status.ok { color: var(--green); background: rgba(5,150,105,0.12); }
-  .fb-status.err { color: var(--red); background: rgba(220,38,38,0.12); }
-  .fb-status.pending { color: var(--yellow); background: rgba(217,119,6,0.12); }
+  #firebase-status { display: flex; align-items: center; padding: 0 2px; }
+  .fb-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .fb-dot.ok { background: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.22); }
+  .fb-dot.pending { background: #f59e0b; animation: fbPulse 1.2s ease-in-out infinite; }
+  .fb-dot.err { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.22); }
+  @keyframes fbPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
   /* PAGE SKELETON OVERLAY */
   .page-skeleton { display: none; position: absolute; inset: 0; padding: 24px; background: var(--bg-mesh); z-index: 5; pointer-events: none; }
@@ -427,7 +429,7 @@
 
   /* SLIDE PAGE TRANSITIONS */
   .page { display: none; opacity: 0; }
-  .page.active { display: block; }
+  .page.active { display: block; opacity: 1; }
   .page.page-enter-forward { animation: slideInRight var(--dur-normal) var(--ease-out-expo) forwards; }
   .page.page-enter-back { animation: slideInLeft var(--dur-normal) var(--ease-out-expo) forwards; }
   @keyframes slideInRight { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: translateX(0); } }
@@ -691,10 +693,8 @@
     <div class="topbar-date" id="topbar-date"></div>
     <div id="topbar-actions"></div>
     <div class="topbar-controls">
-      <span id="firebase-status"><span class="fb-status pending">● Connecting...</span></span>
-      <button class="icon-btn" onclick="openCommandPalette()" title="Command Palette (⌘K)">🔍<span class="cmd-hint">⌘K</span></button>
+      <span id="firebase-status" title="Connecting..."><span class="fb-dot pending" aria-label="Connecting"></span></span>
       <button class="icon-btn" id="lang-toggle" onclick="toggleLang()" title="Language">中文</button>
-      <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">🌙</button>
       <span id="user-email-display" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
       <button class="btn btn-ghost btn-sm" onclick="doLogout()" data-i18n="btn.logout">Logout</button>
     </div>
@@ -1127,10 +1127,6 @@
               <option value="zh">中文</option>
               <option value="en">English</option>
             </select>
-          </div>
-          <div class="setting-row">
-            <div><div class="text-sm font-bold" data-i18n="settings.darkMode">Dark Mode</div><div class="text-xs text-muted" data-i18n="settings.darkModeSub">Switch to dark theme</div></div>
-            <label class="toggle-switch"><input type="checkbox" id="setting-dark-mode" onchange="setTheme(this.checked?'dark':'light')"><span class="toggle-slider"></span></label>
           </div>
           <div class="setting-row">
             <div><div class="text-sm font-bold" data-i18n="settings.soundEffects">Sound Effects</div><div class="text-xs text-muted" data-i18n="settings.soundEffectsSub">Success sound on actions</div></div>
@@ -1606,7 +1602,7 @@ const I18N = {
     'toolbar.quickRecord':'Quick Record — Platform Income','toolbar.exportSnapshot':'↓ Export Snapshot',
     'toolbar.json':'↓ JSON','toolbar.csv':'↓ CSV','toolbar.import':'↑ Import',
     'cmd.searchPlaceholder':'Search pages, bookings, customers, actions...',
-    'fb.connecting':'● Connecting...','fb.connected':'● Firebase Connected','fb.error':'● Firebase Error',
+    'fb.connecting':'Connecting...','fb.connected':'Connected','fb.error':'Connection error',
     'status.New':'New','status.Confirmed':'Confirmed','status.Assigned':'Assigned','status.DriverOnTheWay':'Driver On The Way',
     'status.PassengerPickedUp':'Passenger Picked Up','status.Completed':'Completed','status.Cancelled':'Cancelled','status.NoShow':'No Show',
     'driver.Available':'Available','driver.Busy':'Busy','driver.Driving':'Driving','driver.Resting':'Resting',
@@ -1742,7 +1738,7 @@ const I18N = {
     'toolbar.quickRecord':'快速记录 — 平台收入','toolbar.exportSnapshot':'↓ 导出快照',
     'toolbar.json':'↓ JSON','toolbar.csv':'↓ CSV','toolbar.import':'↑ 导入',
     'cmd.searchPlaceholder':'搜索页面、订单、客户、操作...',
-    'fb.connecting':'● 连接中...','fb.connected':'● Firebase 已连接','fb.error':'● Firebase 错误',
+    'fb.connecting':'连接中...','fb.connected':'已连接','fb.error':'连接错误',
     'status.New':'新订单','status.Confirmed':'已确认','status.Assigned':'已分配','status.DriverOnTheWay':'司机出发',
     'status.PassengerPickedUp':'乘客已上车','status.Completed':'已完成','status.Cancelled':'已取消','status.NoShow':'未出现',
     'driver.Available':'空闲','driver.Busy':'忙碌','driver.Driving':'行驶中','driver.Resting':'休息',
@@ -1866,12 +1862,7 @@ function applyI18n() {
   const langSel = document.getElementById('setting-language');
   if (langSel) langSel.value = currentLang;
   document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
-  const fbEl = document.querySelector('#firebase-status [data-i18n]');
-  if (fbEl && !firebaseConnected) fbEl.textContent = t('fb.connecting');
-  const themeBtn = document.getElementById('theme-toggle');
-  if (themeBtn) themeBtn.title = t('title.darkMode');
-  const cmdBtn = document.querySelector('[onclick="openCommandPalette()"]');
-  if (cmdBtn) cmdBtn.title = t('title.commandPalette');
+  updateFirebaseStatusDot();
   populateTypeSelects();
   resetLoginButton();
   updateTopbarDate();
@@ -1915,6 +1906,39 @@ function refreshActivePage() {
   else if (page === 'settings') { loadSettingsForm(); renderSettingsTypes(); checkFirebaseConnection(); }
   else if (page === 'reports') renderReports('summary');
   updateBadges();
+}
+
+function showHomePage() {
+  const page = userRole === 'driver' ? 'mytrips' : 'dashboard';
+  document.querySelectorAll('.page').forEach(el => {
+    el.classList.remove('active', 'page-enter-forward', 'page-enter-back');
+    el.style.opacity = '';
+  });
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const pageEl = document.getElementById('page-' + page);
+  if (pageEl) {
+    pageEl.classList.add('active');
+    pageEl.style.opacity = '1';
+  }
+  document.querySelector(`.nav-item[onclick="nav('${page}')"]`)?.classList.add('active');
+  document.querySelectorAll('.mobile-nav-item').forEach(btn => btn.classList.toggle('active', btn.dataset.page === page));
+  currentPageName = page;
+  document.getElementById('topbar-title').textContent = t('page.' + page);
+  document.getElementById('topbar-actions').innerHTML = '';
+  hidePageSkeleton();
+  hideAppLoader();
+  if (page === 'dashboard') renderDashboard();
+  else if (page === 'mytrips') renderMyTrips();
+  updateBadges();
+}
+
+function enterApp() {
+  hideLogin();
+  hideAppLoader();
+  hidePageSkeleton();
+  if (!listenersStarted) startListeners();
+  applyRoleUI();
+  showHomePage();
 }
 
 let appSettings = {
@@ -1991,6 +2015,7 @@ window.doLogin = async function() {
     ]);
     currentUser = cred.user;
     document.getElementById('user-email-display').textContent = cred.user.email;
+    if (!listenersStarted) startListeners();
     try {
       await bootstrapAccess();
     } catch (be) {
@@ -1999,10 +2024,8 @@ window.doLogin = async function() {
         errEl.textContent = t('toast.loginNoAccess');
       }
     }
-    hideLogin();
-    startListeners();
-    applyRoleUI();
-    refreshActivePage();
+    enterApp();
+    resetLoginButton();
   } catch(e) {
     errEl.textContent = t('toast.loginFailed') + ': ' + (e.code === 'auth/invalid-credential' ? t('toast.wrongCredentials') : e.message);
     resetLoginButton();
@@ -2069,17 +2092,34 @@ async function checkFirebaseConnection() {
   try {
     await getDoc(doc(db_fs, 'settings', 'access'));
     firebaseConnected = true;
-    const ok = '<span class="fb-status ok" title="Firestore connected">● Firebase Connected</span>';
-    if (el) el.innerHTML = ok;
+    if (el) el.innerHTML = firebaseDotHtml('ok');
     if (settingsEl) settingsEl.innerHTML = '<div class="detail-row"><div class="detail-label">Firestore</div><div class="detail-value green font-bold">Connected ✓</div></div><div class="detail-row"><div class="detail-label">Storage</div><div class="detail-value green font-bold">Ready ✓</div></div><div class="detail-row"><div class="detail-label">Project</div><div class="detail-value text-sm">applerider</div></div>';
   } catch(e) {
     firebaseConnected = false;
-    const err = `<span class="fb-status err" title="${e.message}">● Firebase Error</span>`;
-    if (el) el.innerHTML = err;
+    if (el) el.innerHTML = firebaseDotHtml('err', e.message);
     if (settingsEl) settingsEl.innerHTML = `<div class="detail-row"><div class="detail-label">Status</div><div class="detail-value red font-bold">${e.code || e.message}</div></div>`;
   }
+  updateFirebaseStatusDot();
 }
 window.checkFirebaseConnection = checkFirebaseConnection;
+
+function firebaseDotHtml(status, errMsg) {
+  const tip = status === 'ok' ? t('fb.connected') : status === 'err' ? (errMsg ? String(errMsg) : t('fb.error')) : t('fb.connecting');
+  const safeTip = tip.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  return `<span class="fb-dot ${status}" aria-label="${safeTip}" title="${safeTip}"></span>`;
+}
+
+function updateFirebaseStatusDot() {
+  const el = document.getElementById('firebase-status');
+  if (!el) return;
+  const dot = el.querySelector('.fb-dot');
+  if (!dot) return;
+  const status = dot.classList.contains('ok') ? 'ok' : dot.classList.contains('err') ? 'err' : 'pending';
+  const tip = status === 'ok' ? t('fb.connected') : status === 'err' ? (dot.title || t('fb.error')) : t('fb.connecting');
+  el.title = tip;
+  dot.title = tip;
+  dot.setAttribute('aria-label', tip);
+}
 
 window.uploadReceipt = async function(file, expenseId) {
   if (!currentUser || !file) return null;
@@ -2120,7 +2160,8 @@ function subscribeCol(colName, renderFn) {
     console.error(colName, err);
     firebaseConnected = false;
     const el = document.getElementById('firebase-status');
-    if (el) el.innerHTML = `<span class="fb-status err" title="${err.message}">● ${err.code || 'Permission Denied'}</span>`;
+    if (el) el.innerHTML = firebaseDotHtml('err', err.message || err.code);
+    updateFirebaseStatusDot();
     if (err.code === 'permission-denied') toast('Firebase rules blocked access — deploy firestore.rules', 'error');
   });
   unsubscribers.push(unsub);
@@ -2204,8 +2245,15 @@ function animateStat(id, value, opts = {}) {
 }
 
 function staggerReveal(container, itemSelector = '.stagger-item') {
-  if (!container || REDUCED_MOTION) return;
+  if (!container) return;
   container.querySelectorAll(itemSelector).forEach((el, i) => {
+    if (REDUCED_MOTION) {
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+      return;
+    }
+    el.classList.remove('stagger-item');
+    void el.offsetWidth;
     el.style.animationDelay = (i * 55) + 'ms';
     el.classList.add('stagger-item');
   });
@@ -2504,27 +2552,16 @@ window.handleImport = async function(section, input) {
 };
 
 // ============================================================
-// DARK MODE
+// THEME (light only)
 // ============================================================
-window.toggleTheme = function() {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  setTheme(isDark ? 'light' : 'dark');
-};
-
-window.setTheme = function(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('applerider-theme', theme);
-  appSettings.theme = theme;
-  const btn = document.getElementById('theme-toggle');
-  if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
-  const chk = document.getElementById('setting-dark-mode');
-  if (chk) chk.checked = theme === 'dark';
-  saveAppSettings();
+window.setTheme = function() {
+  document.documentElement.setAttribute('data-theme', 'light');
+  localStorage.setItem('applerider-theme', 'light');
+  appSettings.theme = 'light';
 };
 
 function loadTheme() {
-  const saved = localStorage.getItem('applerider-theme') || appSettings.theme || 'light';
-  setTheme(saved);
+  setTheme();
 }
 
 // ============================================================
@@ -2549,7 +2586,6 @@ const CMD_ACTIONS = [
   { icon:'💸', title:'Add Expense', sub:'Record expense', action:()=>openExpenseModal() },
   { icon:'👤', title:'Add Customer', sub:'New customer', action:()=>openCustomerModal() },
   { icon:'🟢', title:'Quick Grab Income', sub:'Record Grab earnings', action:()=>quickIncome('Grab') },
-  { icon:'🌙', title:'Toggle Dark Mode', sub:'Switch theme', action:()=>toggleTheme() },
 ];
 
 window.openCommandPalette = function() {
@@ -2622,7 +2658,6 @@ function initCommandPalette() {
     else if (e.key === 'Escape') closeCommandPalette();
   });
   document.addEventListener('keydown', e => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openCommandPalette(); }
     if (e.key === 'Escape') closeCommandPalette();
   });
 }
@@ -2785,13 +2820,10 @@ function init() {
       currentUser = user;
       document.getElementById('user-email-display').textContent = user.email;
       syncLoginLogo();
-      hideLogin();
-      startListeners();
-      bootstrapAccess().then(() => {
-        applyRoleUI();
-        refreshActivePage();
-      }).catch(e => {
+      if (!listenersStarted) startListeners();
+      bootstrapAccess().then(() => enterApp()).catch(e => {
         console.error('bootstrapAccess', e);
+        enterApp();
         toast('Access setup issue — check Firebase settings/access', 'error');
       });
     } else {
@@ -2816,16 +2848,16 @@ function startListeners() {
   checkFirebaseConnection();
   // Subscribe to all collections
   subscribeCol('customers',  () => { if(isPageActive('customers')) renderCustomers(); });
-  subscribeCol('drivers',    () => { applyRoleUI(); if(isPageActive('drivers')) renderDrivers(); if(isPageActive('mytrips')) renderMyTrips(); renderDashboard(); });
+  subscribeCol('drivers',    () => { applyRoleUI(); if(isPageActive('drivers')) renderDrivers(); if(isPageActive('mytrips')) renderMyTrips(); if(isPageActive('dashboard')) renderDashboard(); });
   subscribeCol('vehicles',   () => { if(isPageActive('vehicles')) renderVehicles(); });
-  subscribeCol('bookings',   () => { renderDashboard(); renderCalendar(); if(isPageActive('bookings')) renderBookings(); if(isPageActive('closing')) renderClosing(); if(isPageActive('mytrips')) renderMyTrips(); if(isPageActive('roger')) renderRoger(); updateRogerBadge(); });
-  subscribeCol('income',     () => { renderIncome(); renderDashboard(); });
-  subscribeCol('expenses',   () => { renderExpenses(); renderDashboard(); });
+  subscribeCol('bookings',   () => { if(isPageActive('dashboard')) renderDashboard(); renderCalendar(); if(isPageActive('bookings')) renderBookings(); if(isPageActive('closing')) renderClosing(); if(isPageActive('mytrips')) renderMyTrips(); if(isPageActive('roger')) renderRoger(); updateRogerBadge(); });
+  subscribeCol('income',     () => { if(isPageActive('dashboard')) renderDashboard(); if(isPageActive('income')) renderIncome(); });
+  subscribeCol('expenses',   () => { if(isPageActive('dashboard')) renderDashboard(); if(isPageActive('expenses')) renderExpenses(); });
   subscribeCol('closings',   () => {});
   subscribeCol('notifications', () => { if(isPageActive('notifications')) renderNotifications(); updateBadges(); });
 
-  refreshActivePage();
-  setTimeout(() => { hideAppLoader(); refreshActivePage(); renderCalendar(); }, 2500);
+  showHomePage();
+  setTimeout(() => { showHomePage(); renderCalendar(); }, 800);
 }
 
 function isPageActive(page) {
@@ -3904,7 +3936,7 @@ function applyRoleUI() {
       const label = homeBtn.querySelector('span:not(.m-icon)');
       if (label) label.textContent = t('mobile.mytrips');
     }
-    if (document.querySelector('.page.active')?.id === 'page-dashboard') nav('mytrips');
+    if (document.querySelector('.page.active')?.id === 'page-dashboard') showHomePage();
   } else {
     const homeBtn = document.querySelector('.mobile-nav-item[data-page="mytrips"]');
     const dashBtn = document.querySelector('.mobile-nav-item[data-page="dashboard"]');
@@ -4313,8 +4345,6 @@ function loadSettingsForm() {
   if (soundEl) soundEl.checked = !!appSettings.soundEnabled;
   const confEl = document.getElementById('setting-confetti');
   if (confEl) confEl.checked = appSettings.confettiEnabled !== false;
-  const darkEl = document.getElementById('setting-dark-mode');
-  if (darkEl) darkEl.checked = (appSettings.theme || localStorage.getItem('applerider-theme')) === 'dark';
 }
 
 // ============================================================
